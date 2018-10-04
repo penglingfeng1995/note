@@ -591,30 +591,48 @@ console.timeEnd("a");//a: 2.663ms  关闭计时器a，并输出时间
 
 ## 九，对象
 
+### 创建对象
+
 ```javascript
 var obj=new Object();//创建对象 使用new关键字，调动构造方法
 console.log(obj);//{}   空对象
+```
 
+### 设置属性
+
+```javascript
 obj.name="张三";//使用对象.属性=值; 添加属性
 obj.age=12;
 console.log(obj);//{ name: '张三', age: 12 }
-
-obj.name="李四";//修改属性，直接覆盖
-console.log(obj.name);//"李四",使用对象.属性取值
-console.log(obj.gender);//undefined,不存在的属性为undefined
 
 var a = 1;
 obj[a] = "qwer";//可以使用方括号去设置属性，里面放属性名，可以是变量
 console.log(obj);//{ '1': 'qwer', name: '李四', age: 12 }
 console.log(obj[a]);//qwer
+```
 
+### 修改属性
+
+```javascript
+obj.name="李四";//修改属性，直接覆盖
+console.log(obj.name);//"李四",使用对象.属性取值
+console.log(obj.gender);//undefined,不存在的属性为undefined
+```
+
+### 属性类型
+
+```javascript
 var son = new Object();
 son.name = "王五";
 obj.son = son;//属性也可以是对象
 console.log(obj);//{ '1': 'qwer', name: '李四', age: 12, son: { name: '王五' } }
 console.log(obj.son.name);//王五  依次通过.来调用对象中的对象的属性
 console.log("name" in obj);//可以通过关键字in 来判断一个对象中是否包含该属性
+```
 
+### 快速创建
+
+```javascript
 var obj3 = {//可以直接用{}来声明对象，推荐,并可以在创建的时候设置属性
     		//{属性名1:属性值1,属性名2:属性值2}
     name: "张三",//属性名可以加引号，可以不加，一般不加，除非属性名有特殊字符
@@ -775,7 +793,7 @@ fun1();
 console.log(a);//全局的a  
 ```
 
-### this
+### 上下文对象 this
 
 函数在调用的时，会默认传入一个this对象，this代表**调用当前函数的当前对象**
 
@@ -809,7 +827,7 @@ var p1=new Person("张三",12);//通过new关键字调用
 p1.say();
 ```
 
-### 原型对象
+### 原型对象 prototype
 
 ```javascript
 //把方法直接作为属性，每new一次对象，就会创建一个匿名函数，影响性能
@@ -834,6 +852,41 @@ console.log(p1.__proto__.hasOwnProperty("hasOwnProperty"));//false  但是hasOwn
 console.log(p1.__proto__.__proto__.hasOwnProperty("hasOwnProperty"));//true  在根原型Object的原型中
 console.log(p1.__proto__.__proto__.__proto__);//null    根原型的__proto__属性为null
 ```
+
+### call和apply
+
+```javascript
+function fun1(a,b) {
+    console.log(this)
+    console.log(a)
+    console.log(b)
+}
+
+fun1(1,2) //直接调用，this在浏览器下会是window对象，在node中是global对象
+let zs={name:"zs"}
+//当函数对象调用apply,call方法时，可以传入一个参数，这个参数会被作为函数中的this
+//{ name: 'zs' }  1  2
+fun1.apply(zs,[1,2])  //apply需要把其他参数封装到一个list里
+fun1.call(zs,1,2)     //call 直接把参数跟在第一个参数后面即可
+```
+
+### arguments
+
+```javascript
+function fun1() {
+    //当调用函数时，默认有个参数arguments ,无论写不写形参，都会把实参封装到这个对象中
+    console.log(arguments) //{ '0': 'aaa', '1': 123 }
+    console.log(arguments.length) //2  参数的数量 
+    console.log(Array.isArray(arguments)) //false  不是数组，但是可以通过索引操作属性
+    console.log(arguments[1]) //123  通过索引取值  
+    console.log(arguments.callee) //[Function: fun1]  callee属性就是当前函数
+    console.log(arguments.callee==fun1) //true  
+}
+
+fun1("aaa",123)
+```
+
+
 
 ## 十一，数组
 
@@ -898,7 +951,205 @@ arr.forEach(function (element,index,array) {
 
 
 
+## 十二，常用类
 
+### Date
+
+```javascript
+var date1=new Date()  //得到执行这一行代码的当前时间
+console.log(date1)
+//  chrome69,ie10 中显示 Thu Oct 04 2018 13:38:33 GMT+0800 (中国标准时间)
+//  firefox62 ,node9.8中显示  2018-10-04T05:36:08.050Z
+
+var date2=new Date("12/03/2016 13:56:33:22") //得到一个指定的时间
+console.log(date2)//Sat Dec 03 2016 13:56:33 GMT+0800 (中国标准时间)
+console.log(date2.getDate()) //3 返回这个月中的第几天，number
+console.log(date2.getDay())  //6 返回这周中的第几天，0为周日，1为周一 ,number
+console.log(date2.getFullYear())//2016 返回四位年份,number
+console.log(date2.getMonth())  //11 返回月数，0为1月，11为12月
+console.log(date2.getHours())  //13 时
+console.log(date2.getMinutes())//56 分
+console.log(date2.getSeconds())//33 秒
+console.log(date2.getMilliseconds()) //22  毫秒
+console.log(date2.getTime()) //1480744593000 得到时间戳，从1970年1月1日0：0：0到现在的毫秒数
+```
+
+### Math
+
+```javascript
+console.log(Math.PI) //3.141592653589793 圆周率
+console.log(Math.abs(-3))//3  返回绝对值
+console.log(Math.ceil(-2.33))//-2 向上取整
+console.log(Math.floor(-2.33))//-3 向下取整
+console.log(Math.round(3.4))//3  四舍五入
+console.log(Math.max(1,2,3,4,5)) //5 最大值
+console.log(Math.min(1,2,3,4,5))//1  最小值
+console.log(Math.pow(3,4))//81  x的y次幂
+console.log(Math.sqrt(64))//8  开根号
+console.log(Math.random())//0.5161926002350568  生成0到1之间的随机数
+
+function myrandom(x,y) { //生成x-y范围的随机数公式.包括x,y
+    return Math.round(Math.random()*(y-x)+x)
+}
+console.log(myrandom(1000,9999))//四位验证码
+```
+
+### String
+
+```javascript
+var str1="abcdefg"
+console.log(str1.length)//7 字符串的长度
+console.log(str1[2])//c   同下
+console.log(str1.charAt(2))//得到对应索引的字符
+console.log(str1.charCodeAt(0))//97  得到对应位置字符的unicode编码
+console.log(String.fromCharCode(20013))//中  从unicode编码转换为字符
+console.log(str1.includes("bc",1))//true  searchstring,[position],从指定位置判断是否包含字符串
+console.log(str1.indexOf("cd",1))//2  得到第一次出现该字符串的首字符索引,没有返回-1，可以指定起点
+console.log(str1.lastIndexOf("e")) //4 从后面往前找
+console.log(str1.slice(2,-1))//cdef 和substring一样，但是可以接受负数,-1为最后一字符,-2倒数第二
+console.log(str1.substring(2,4))//cd  start,[end]截取，截头不截尾，不影响原字符串,没用end，截到尾
+console.log(str1.substr(2,3))//cde  index,[length]从指定位置截取多少位字符
+console.log(str1.split("d"))//[ 'abc', 'efg' ]  拆分,拿掉参数的字符串，剩下的部分作为数组,传"",则拆全部
+console.log(str1.toUpperCase())//ABCDEFG  转大写
+console.log(str1.toLowerCase())// 转小写
+```
+
+## 十三，正则表达式
+
+### 创建
+
+```javascript
+var reg1=new RegExp("a","i")// 正则表达式,[匹配模式]  匹配模式i 为忽略大小写 g为全局匹配
+console.log(reg1)// /a/i   表示包含a
+console.log(reg1.test("adfs")) //true 使用test方法测试字符串,默认区分大小写，返回boolean
+```
+
+### 快速创建
+
+直接创建方便，但是构造函数可以把变量作为参数，更灵活
+
+```javascript
+var reg1=/a/i  //快速创建  /正则表达式/匹配模式
+console.log(reg1.test("A"))
+```
+
+### 或 
+
+使用竖线`|`,表示或
+
+```javascript
+var reg1=/a|b/i  //使用竖线 ，表示或 
+console.log(reg1.test("berw"))
+```
+
+使用中括号`[]`
+
+```javascript
+var reg1=/[ab]/i  //使用中括号[],里面的字符为或的关系，[ab]相当于a|b
+console.log(reg1.test("berw"))//true
+```
+
+指定范围
+
+```javascript
+var reg1=/[d-g]/ //用-号指定范围 a-z为所有小写字母,A-Z为所有大写,A-z所有字母忽略大小写 0-9为任意数字
+console.log(reg1.test("e"))//true
+```
+
+### 排除
+
+```javascript
+var reg1=/[^ab]/ //用^表示除了
+console.log(reg1.test("ababaaa"))//false
+console.log(reg1.test("abc"))//true  除了ab还有c
+```
+
+### 量词
+
+```javascript
+var reg1=/(ab){3}/  //相当于/ababab/
+//使用{n}设置正好出现的次数，但是只对上一个字符有效，要想匹配多个字符使用()包起
+console.log(reg1.test("abababfsad"))//true
+
+var reg1=/ab{1,3}c/  //{m,n} 为出现m到n次
+console.log(reg1.test("abbc"))//true
+
+var reg1=/ab{3,}c/  //{m,} 为出现m次以上
+console.log(reg1.test("abbbbbc"))//true
+
+var reg1=/ab+c/  // 被+号修饰的字符，为至少出现一次，相当于{1,}
+console.log(reg1.test("abbbbbc"))//true  至少由一个b
+
+var reg1=/ab*c/  // 被*号修饰的字符，表示0个或多个，相当于{0,}
+console.log(reg1.test("ac"))//true
+
+var reg1=/ab?c/  // 被?号修饰的字符，表示0个或1个，相当于{0,1}
+console.log(reg1.test("abbc"))//false
+
+```
+
+### 头尾
+
+```javascript
+var reg1=/^a/  // 由^开头后面跟的字符为，已这串字符开头
+console.log(reg1.test("abcwer"))//true
+
+var reg1=/a$/  // 由$开头后面跟的字符为，已这串字符结尾
+console.log(reg1.test("werqta"))//true
+```
+
+### 转义
+
+```javascript
+var reg1=/\./
+// 正则中.会匹配所有字符，使用反斜杠\转义
+console.log(reg1.test("awe.f"))
+```
+
+### 元字符
+
+```
+\w	查找单词字符。
+\W	查找非单词字符。
+\d	查找数字。
+\D	查找非数字字符。
+\s	查找空白字符。
+\S	查找非空白字符。
+\b	匹配单词边界。
+\B	匹配非单词边界。
+```
+
+### 常用正则
+
+```javascript
+var reg1=/^1[3-9][0-9]{9}$/
+// 手机号正则 以1开头，第二位为3-9 ,总长度为11位
+console.log(reg1.test("13656567878"))
+
+var reg1=/^[\w\.-]+@[\w-]+(\.\w{2,6}){1,2}$/
+//邮箱正则 
+console.log(reg1.test("pl-111@qq.com.cn"))
+```
+
+### 字符串相关方法
+
+```javascript
+var str1="1b2c3d4e5f6"
+
+console.log(str1.split(/[A-z]/))
+//[ '1', '2', '3', '4', '5', '6' ] split 默认全局拆分,可以接受正则表达式
+console.log(str1.search(/[cd]/))
+//3  和indexof差不多，但是可以接受正则表达式
+console.log(str1.match(/[A-z]/g))  
+//[ 'b', 'c', 'd', 'e', 'f' ]  默认提取第一个符合的字符串,作为数组返回
+console.log(str1.replace(/[a-z]/g,"@"))
+//1@2@3@4@5@6  要被替换的字符串,[新的字符串],可以接受正则,默认替换第一个
+
+```
+
+## 十四,DOM
+
+dom 为 文档对象模型 (document object model),
 
 
 
