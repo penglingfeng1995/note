@@ -1149,7 +1149,180 @@ console.log(str1.replace(/[a-z]/g,"@"))
 
 ## 十四,DOM
 
-dom 为 文档对象模型 (document object model),
+dom 为 文档对象模型 (document object model),用于操作页面元素，不同浏览器对于显示结果不同
+
+```html
+<button id="btn1">按钮1</button>
+<script>
+    console.log(document) //[object HTMLDocument] 在页面中已经有了document对象
+    var btn1=document.getElementById("btn1") //通过id得到元素
+    console.log(btn1) //<button id="btn1">按钮1</button>
+    console.log(btn1.innerHTML)//按钮1  得到对象的属性
+</script>
+```
+
+### 事件
+
+指网页发生交互的瞬间
+
+```html
+<button id="btn1" onclick="alert('点击事件1')">按钮1</button>
+```
+
+上面通过`onclick`属性绑定了一个事件，事件会执行里面的js代码,但是这样会耦合,建议把结构和行为分开
+
+```html
+    <button id="btn1">按钮1</button>
+    <script>
+        var btn1=document.getElementById("btn1") //得到按钮对象
+        btn1.onclick=function () {   //设置属性绑定为一个匿名函数
+            alert("通过js绑定事件")
+        }
+    </script>
+```
+
+### 页面加载过程
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script>
+        /*
+        * 由于页面是由上而下逐行加载执行，此时页面body还没开始加载，get到的对象是null
+        * 会报错Uncaught TypeError: Cannot set property 'onclick' of null
+        * */
+        window.onload=function () {
+            var btn1=document.getElementById("btn1")
+            btn1.onclick=function () {
+                alert("通过js绑定事件")
+            }
+        }
+        //此时需要把代码写在window的加载事件中，当页面加载完成时会调用里面的方法
+        //不过先绑定事件多少还是会影响页面的加载速度，所以建议js写在body快要结束前
+    </script>
+</head>
+<body>
+    <button id="btn1">按钮1</button>
+</body>
+</html>
+
+```
+
+### 元素查询
+
+通过**id**得到节点 ,通过`document`对象调用`getElementById`方法，参数为id值,只能获取第一个id为此的对象，否则返回null
+
+```javascript
+var city1=document.getElementById("city1")
+```
+
+通过**标签名**得到节点集合 ,`getElementsByTagName`方法，注意是复数
+
+```html
+<ul id="city1">
+    <li>北京</li>
+    <li>上海</li>
+    <li>深圳</li>
+</ul>
+<script>
+    var lis=document.getElementsByTagName("li") //得到一个类数组对象
+    console.log(lis) //HTMLCollection(3) [li, li, li]
+    for (var i=0;i<lis.length;i++){  //遍历得到每个元素
+        console.log(lis[i]) //<li>北京</li>
+        console.log(lis[i].innerHTML) //北京
+    }
+</script>
+```
+
+通过**name**得到节点集合,`getElementsByName`方法,参数为name值
+
+```html
+男:<input type="radio" name="gender" value="man"/>
+女:<input type="radio" name="gender" value="woman"/>
+<script>
+    var ins=document.getElementsByName("gender")
+    console.log(ins) //NodeList(2) [input, input]
+    for (var i=0;i<ins.length;i++){
+        console.log(ins[i]) //<input name="gender" value="man" type="radio">
+        console.log(ins[i].innerHTML) //innerHTML是拿到元素中的html代码,</>自结束标签该值为空字符串
+        console.log(ins[i].value)//man 得到属性
+        console.log(ins[i].type)//radio 需要什么属性直接点
+    }
+</script>
+```
+
+通过**class**得到节点集合,`getElementsByClassName`方法,参数为样式名,得到包含此样式的元素
+
+```html
+<p class="s1">aaaa</p>
+<p class="s1">bbbb</p>
+<script>
+    var ps=document.getElementsByClassName("s1")
+    for (var i=0;i<ps.length;i++){
+        console.log(ps[i]) //<p class="s1">aaaa</p>
+        console.log(ps[i].innerHTML) //aaaa
+        console.log(ps[i].className) //s1 由于class是js的关键字，所以通过className属性来调用
+    }
+</script>
+```
+
+切换图片练习
+
+```html
+<body>
+    <p id="p1"></p>
+    <img id="img1" style="width: 200px;height: 355px" src=""/>
+    <button id="prev">上一张</button>
+    <button id="next">下一张</button>
+    <script>
+        window.onload=function () {
+            var imgurls=[ //花瓣网上偷几张图
+                "http://img.hb.aicdn.com/908820a96840aba52650fa65d2eeab4af341eece14cf37-IiORaH_fw658",
+                "http://img.hb.aicdn.com/fcd51b6f6622a09c4634b743b559dd7dc30f06c626f05-T01TqV_fw658",
+                "http://img.hb.aicdn.com/d4546113aee853619ca2486610deb8481503466822afa-fSafcz_fw658",
+                "http://img.hb.aicdn.com/7f9f1a1fc2f96de116ca1f9ed2b0083f34e792be1a534c-rqr4St_fw658",
+                "http://img.hb.aicdn.com/6905feaceedcc187a8c2d39488892983ed5ab3f0192680-mYgiBO_fw658"
+            ];
+            var img1=document.getElementById("img1") //得到img对象
+            var index4img=0 //设置一个索引来标记第几张,初始值为0表示第一张
+            img1.src=imgurls[index4img] //设置初始值图片
+            var p1=document.getElementById("p1") //提示信息标签
+            p1.innerHTML="共有"+imgurls.length+"张，当前为第"+(index4img+1)+"张"
+
+            //得到prev元素直接绑定点击事件
+            document.getElementById("prev").onclick=function () {
+                //如果到了第一张
+                if(index4img==0){
+                    index4img=imgurls.length-1 //则设置为最后一张
+                }else {
+                    index4img--  //否则进入上一张
+                }
+                img1.src=imgurls[index4img]
+                p1.innerHTML="共有"+imgurls.length+"张，当前为第"+(index4img+1)+"张"
+            }
+            //同上
+            document.getElementById("next").onclick=function () {
+                if(index4img==(imgurls.length-1)){
+                    index4img=0
+                }else {
+                    index4img++
+                }
+                img1.src=imgurls[index4img]
+                p1.innerHTML="共有"+imgurls.length+"张，当前为第"+(index4img+1)+"张"
+            }
+        }
+    </script>
+</body>
+```
+
+
+
+
+
+
 
 
 
