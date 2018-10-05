@@ -1213,11 +1213,17 @@ dom 为 文档对象模型 (document object model),用于操作页面元素，�
 
 ### 元素查询
 
+元素element一般指标签，节点node包括文本节点，标签节点，属性节点
+
+#### id
+
 通过**id**得到节点 ,通过`document`对象调用`getElementById`方法，参数为id值,只能获取第一个id为此的对象，否则返回null
 
 ```javascript
 var city1=document.getElementById("city1")
 ```
+
+#### tagName
 
 通过**标签名**得到节点集合 ,`getElementsByTagName`方法，注意是复数
 
@@ -1237,6 +1243,8 @@ var city1=document.getElementById("city1")
 </script>
 ```
 
+#### name
+
 通过**name**得到节点集合,`getElementsByName`方法,参数为name值
 
 ```html
@@ -1254,7 +1262,9 @@ var city1=document.getElementById("city1")
 </script>
 ```
 
-通过**class**得到节点集合,`getElementsByClassName`方法,参数为样式名,得到包含此样式的元素
+#### className
+
+通过**class**得到节点集合,`getElementsByClassName`方法,参数为样式名,得到包含此样式的元素,ie8不支持
 
 ```html
 <p class="s1">aaaa</p>
@@ -1269,7 +1279,7 @@ var city1=document.getElementById("city1")
 </script>
 ```
 
-切换图片练习
+#### 切换图片练习
 
 ```html
 <body>
@@ -1316,6 +1326,189 @@ var city1=document.getElementById("city1")
         }
     </script>
 </body>
+```
+
+#### child
+
+```html
+    <ul id="ul1">
+        <li>北京</li>
+        <li>上海</li>
+        <li>深圳</li>
+    </ul>
+    <script>
+        var ul1=document.getElementById("ul1")
+        var lis=ul1.getElementsByTagName("li")  
+        //getElementsByTagName 还可以被元素对象调用 从子元素查询
+        for (var i = 0; i < lis.length; i++) {
+            console.log(lis[i].innerHTML)
+        }
+    </script>
+```
+
+通过`childNodes`属性,拿到所有子节点，由于会拿到空白元素，且与ie8以下兼容性不好，不建议使用
+
+```html
+<ul id="ul1">
+    <li>北京</li>
+    <li>上海</li>
+    <li>深圳</li>
+</ul>
+<script>
+    var ul1=document.getElementById("ul1")
+    var lis=ul1.childNodes  
+    //childNodes属性会得到所有的子节点，而且包括标签直接的空白
+    console.log(lis.length) //7  ie8以下显示4, 有四处空白和三个元素
+    for (var i = 0; i < lis.length; i++) {
+        console.log(lis[i]) //#text  <li>北京</li>  
+    }
+</script>
+```
+
+通过`children`属性，拿到子元素，建议使用
+
+```html
+<ul id="ul1">
+    <li>北京</li>
+    <li>上海</li>
+    <li>深圳</li>
+</ul>
+<script>
+    var ul1=document.getElementById("ul1")
+    var lis=ul1.children
+    //children属性会得到所有的子元素
+    console.log(lis.length) //3 有三个标签元素
+    for (var i = 0; i < lis.length; i++) {
+        console.log(lis[i]) //  <li>北京</li>
+    }
+</script>
+```
+
+first  last
+
+```html
+<ul id="ul1">
+    <li>北京</li>
+    <li>上海</li>
+    <li>深圳</li>
+</ul>
+<script>
+    var ul1=document.getElementById("ul1")
+    console.log(ul1.firstChild)//#text 拿到第一个子节点，如果有空会拿到空白节点
+    console.log(ul1.firstElementChild)//<li>北京</li> 得到第一个子元素 ie8显示undefined
+    console.log(ul1.lastChild)//#text
+    console.log(ul1.lastElementChild)//<li>深圳</li>
+</script>
+```
+
+#### parent 
+
+```html
+<ul>
+    <li >北京</li>
+    <li id="snh">上海</li>
+    <li>深圳</li>
+</ul>
+<script>
+    var snh=document.getElementById("snh")
+    console.log(snh.parentNode)//<ul>...</ul>  得到父节点
+    console.log(snh.parentElement)//<ul>...</ul>  得到父元素
+    console.log(snh.previousSibling)//#text  得到上一个兄弟节点，会拿到空白
+    console.log(snh.previousElementSibling)//<li >北京</li>  得到上一个兄弟元素 没有返回null
+    console.log(snh.nextSibling)//#text 下一个节点
+    console.log(snh.nextElementSibling)//<li>深圳</li> 下一个元素
+</script>
+```
+
+#### 全选练习
+
+```html
+    全选or全不选:<input type="checkbox"  id="allrdo">
+        <div>
+            <input type="checkbox" name="hobby" value="basketball">篮球
+            <input type="checkbox" name="hobby" value="football">足球
+            <input type="checkbox" name="hobby" value="run">跑步
+        </div>
+    <script>
+        function myClick(idv,fun){ //封装一个方法，通过id绑定事件
+            document.getElementById(idv).onclick=fun
+        }
+
+        myClick("allrdo",function () {
+            console.log(this) //调用事件回调函数的对象就是元素本身
+            //<input type="checkbox"  id="allrdo">
+            var hobs=document.getElementsByName("hobby") //得到复选框集合
+            for (let i = 0; i < hobs.length; i++) {
+                hobs[i].checked=this.checked  //通过checked属性设置是否选中
+            }
+        })
+    </script>
+```
+
+#### 选择器
+
+通过`querySelector`和`querySelectorAll`两个方法
+
+```html
+<div id="ww"></div>
+<p class="pp">wrewre</p>
+<script>
+    console.log(document) //#document  整个文档
+    console.log(document.body)//body标签
+    console.log(document.documentElement)//html标签
+    //选择器的用法  .class  tag   #id
+    console.log(document.querySelector("#ww"))//选择器 只会返回第一个匹配的元素
+    console.log(document.querySelectorAll(".pp"))//选择器 返回一个NodeList
+</script>
+```
+
+### 增删改
+
+通过`appendChild`,`insetBefore`,`removeChild`,`replaceChild`,方法增删改节点
+
+```html
+<div>
+    <ul id="city">
+        <li>广州</li>
+        <li id="sz">深圳</li>
+        <li>上海</li>
+    </ul>
+
+    <button id="add">添加</button>
+    <button id="addbf">添加到子节点前</button>
+    <button id="rep">替换子节点</button>
+    <button id="del">删除子节点</button>
+</div>
+<script>
+    function myClick(idv,fun) { //封装绑定点击事件的方法
+        document.getElementById(idv).onclick=fun
+    }
+
+    function getBJ(){ //返回组装好的北京节点
+        var li1=document.createElement("li") //<li></li>  创建li元素
+        li1.innerHTML="北京"
+        return li1
+    }
+
+    myClick("add",function () {
+        document.querySelector("#city").appendChild(getBJ())//添加到ul下,默认添加到最后
+    })
+
+    myClick("addbf",function () {
+        var sz=document.querySelector("#sz")//被参考的子节点
+        sz.parentNode.insertBefore(getBJ(),sz)//父节点.insertBefore(新节点，参考节点)
+    })
+
+    myClick("rep",function () {
+        var sz=document.querySelector("#sz")//被替换的子节点
+        sz.parentNode.replaceChild(getBJ(),sz)//父节点.replaceChild(新节点，旧节点)
+    })
+
+    myClick("del",function () {
+        var sz=document.querySelector("#sz")//被移除
+        sz.parentNode.removeChild(sz) //移除子节点
+    })
+</script>
 ```
 
 
