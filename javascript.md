@@ -1511,6 +1511,293 @@ first  last
 </script>
 ```
 
+### 操作内联样式
+
+通过`元素.style.样式名="样式值"`,修改样式，会把样式直接加到内联属性中
+
+```html
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        .box1{
+            width: 50px;
+            height: 50px;
+            background-color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="box1" id="box1"></div>
+<script>
+    document.getElementById("box1").onclick=function () {
+        this.style.width="100px" //元素.style.样式名=样式值 修改内联样式
+        this.style.backgroundColor="green" //有减号的用驼峰代替
+        console.log(this.style.width) //只能读取内联样式，不能读取样式表的样式
+    }
+</script>
+```
+
+获取当前样式
+
+```html
+<div class="box1" id="box1"></div>
+<script>
+    //为了兼容ie8封装方法
+    function getStyle(element,styleName) {
+        if(window.getComputedStyle){ //ie9以上,gc,ff等window拥有getComputedStyle函数
+            return getComputedStyle(element)[styleName]
+        }
+        //ie8以下使用currentStyle
+        return element.currentStyle[styleName]
+    }
+
+    var box1=document.getElementById("box1")
+    box1.onclick=function () {
+        console.log(getStyle(this,"width")) //传入要查询的元素和样式名
+    }
+</script>
+```
+
+### 事件对象 event
+
+#### 坐标属性
+
+```html
+<div class="box1" id="box1"></div>
+<script>
+    //绑定鼠标移动事件
+    document.getElementById("box1").onmousemove=function (event) {
+        //当事件触发时,chrome,ie9以上会把event对象保存到window中，并作为参数传入
+        //ie8以下，只会保存到window中。firefox,只会作为参数传入
+        //兼容三者，需要判断传入的event是否可用，否则指向window的event
+        event=event||window.event
+        console.log(event)//事件对象本身，封装了触发时的各种参数
+        console.log(event.clientX) //鼠标的水平坐标
+        console.log(event.clientY)//鼠标的垂直坐标
+    }
+</script>
+```
+
+拖拽div练习
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        .box1{
+            width: 200px;
+            height: 200px;
+            background-color: red;
+            position: absolute;
+            /*设置绝对定位，不然无法修改位置*/
+        }
+    </style>
+</head>
+<!--设置页面大小，使其有滚动条-->
+<body style="width: 2000px;height: 1000px;">
+<div class="box1" id="box1"></div>
+<script>
+    //绑定鼠标移动事件
+    document.onmousemove=function (event) {
+        event=event||window.event
+        var box1=document.getElementById("box1")
+        //事件的clientXY属性，是相对于窗口，而div的边距是相对于网页全部
+        //当页面过大滚动到下面会有间距，所以这里需要pageXY
+        //ie8不支持pageXY,gc,ff,ie9以上等其他浏览器都支持
+        
+        // box1.style.left=event.pageX+"px"
+        // box1.style.top=event.pageY+"px"
+        
+        //所以这时候需要通过滚动条算出偏移量
+        //chrome通过html得到scroll,其他浏览器通过body得到scroll
+        //计算上下偏移量
+        var st=document.documentElement.scrollTop||document.body.scrollTop
+        //计算左右偏移量
+        var sl=document.documentElement.scrollLeft||document.body.scrollLeft
+        
+        box1.style.left=event.clientX+sl+"px" 
+        //设置div的左边距等于事件发生的鼠标x坐标和左右滚动条的长度之和
+        box1.style.top=event.clientY+st+"px"//同上
+    }
+</script>
+</body>
+</html>
+
+```
+
+#### 冒泡 bubble
+
+```html
+<div class="box1" id="box1">
+    <span id="sp1">fdfdsa</span>
+</div>
+<script>
+    //事件冒泡。当一个元素触发事件时，它的上级元素也会触发同类事件
+    document.getElementById("box1").onclick=function () {
+        console.log("div 点击")
+    }
+
+    document.getElementById("sp1").onclick=function (event) {
+        console.log("span 点击")
+        //设置事件的cancelBubble属性为true，可以阻止事件冒泡
+        event.cancelBubble=true
+    }
+</script>
+```
+
+#### 委派
+
+```html
+<div class="box1" id="box1">
+    <span><a href="javascript:;">delete</a>sfdasd</span>
+    <!--阻止a标签的默认行为-->
+</div>
+<script>
+    //事件委派，当一个元素的绑定事件后，其后代元素均可触发这个事件
+    //通过event.target得到触发事件的元素
+    document.getElementById("box1").onclick=function (event) {
+        console.log(event.target)
+    }
+</script>
+```
+
+#### 监听 listen
+
+```html
+<div class="box1" id="box1"></div>
+<script>
+    //事件监听
+    var box1=document.getElementById("box1")
+    
+    box1.onclick=function () {//绑定第一个事件
+        console.log(1)
+    }
+    box1.onclick=function () {//第二个相同类型的事件会覆盖之前绑定的事件
+        console.log(2)
+    }
+    box1.addEventListener("click",function () {
+        //通过添加事件监听，绑定多个事件,
+        // ie8不支持,ie8用attachEvent(),不建议使用,因为gc,ff都不支持
+        // 参数类型字符串(不加on),回调函数
+        console.log(3)
+    })
+
+</script>
+```
+
+封装bind
+
+```javascript
+//为了兼容ie8，封装方法
+function bind(element,eventStr,fun) {//传入三个参数，元素，事件名，回调函数
+    if (element.addEventListener){   //如果存在该属性
+        element.addEventListener(eventStr,fun) //则使用大多数浏览器的方式
+    }else{               //否则就是ie8,使用attachEvent
+        element.attachEvent("on"+eventStr,function () {//事件名要加on
+            fun.call(element) //由于直接传的函数，会由window调用，函数内部this为window
+            				//封装一层匿名函数，里面通过call方法调用，指定this为当前元素
+        })
+    }
+}
+//事件监听
+var box1=document.getElementById("box1")
+bind(box1,"click",function () {
+    console.log("bind 方法")
+})
+
+```
+
+#### 传播
+
+事件的传播会分为三个阶段，
+
+**捕获阶段**:由最外层的祖先元素开始，对目标元素事件进行捕获，但是不会触发事件
+
+**目标阶段**:捕获到目标对象的事件后，触发事件
+
+**冒泡阶段**:往祖先元素传递，依次由里往外触发事件
+
+```html
+<div class="box1" id="box1">
+    <span id="sp1"><a href="javascript:;" id="a1">delete</a>sfdasd</span>
+</div>
+<script>
+    //事件传播
+    document.getElementById("box1").addEventListener("click",function () {
+        console.log("box1")
+    },true)//第三个参数默认为false,设置为true，表示从捕获阶段开始执行
+    document.getElementById("sp1").addEventListener("click",function () {
+        console.log("sp1")
+    },true)//ie8以下没有捕获阶段,attachEvent没有第三个参数
+    document.getElementById("a1").addEventListener("click",function () {
+        console.log("a1")
+    },true)
+</script>
+```
+
+#### 定时器
+
+```html
+<span id="sp1"></span>
+<script>//通过setInterval(回调函数,间隔毫秒),来定时任务，返回一个字符串标识
+    var timer1=setInterval(function () {
+        document.getElementById("sp1").innerHTML=new Date()
+    },1000)
+    //clearInterval(timer1)   可以通过这个方法清除指定标识的定时器
+</script>
+```
+
+#### 延时调用
+
+页面加载后，等待多时毫秒后，只执行一次
+
+```javascript
+var time1=setTimeout(function () {
+    alert("延时调用")
+},3000)
+//clearTimeout(time1)
+```
+
+
+
+## 十五,BOM
+
+### 常用对象
+
+Window:整个窗口
+
+Navigator:浏览器的信息
+
+Location:地址栏信息
+
+History:历史记录,只能当次操作前后翻页
+
+Screen:屏幕信息
+
+## 十六,JSON
+
+json是javascript object notation,一种数据交换模型，就是用字符串表示js对象或数组
+
+```javascript
+var stu1='{"name":"zs","age":12}'  //格式为字符串，因为属性要双引号，所以外面用单引号
+var ls='[1,2,"zs",true]'
+
+var stuo=JSON.parse(stu1)   //JSON.parse  方法  字符串转对象
+console.log(stuo.name,stuo.age)
+var lso=JSON.parse(ls)
+console.log(lso[2])
+
+var str1=JSON.stringify(stuo)  //JSON.stringify   对象转字符串
+console.log(str1)
+
+var al="alert('aa');"  
+eval(al)               //eval 可以执行字符串形式的代码
+```
+
 
 
 
