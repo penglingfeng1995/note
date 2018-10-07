@@ -967,10 +967,6 @@ for(var i=0;i<arr.length;i++){
 for (var i in arr){
     console.log(arr[i]);
 }
-//数组的forEach中传回调函数 ,回调函数会依次传，元素，索引，原数组
-arr.forEach(function (element,index,array) {    			
-    console.log("元素:"+element+",索引:"+index+",原数组:"+array);
-});
 
 ```
 
