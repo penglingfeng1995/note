@@ -48,7 +48,7 @@ redhat(红帽)，ubuntu(乌班图)，CentOS，debain(蝶变)，Suse
 
 3.开启此虚拟机
 
-4,选择install centos 7 ，选择中文，最小安装
+4,选择install centos 7 ，选择中文，选择GNOME桌面，后面会比较方便设置网络，命令也多一些
 
 5,为root根用户设置密码，再创建一个新用户,等待安装完成
 
