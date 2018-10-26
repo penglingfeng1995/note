@@ -1,6 +1,6 @@
 # Vue
 
-## 一，基本使用
+## 基本使用
 
 ```html
 <!DOCTYPE html>
@@ -32,7 +32,7 @@
 </html>
 ```
 
-## 二，数据绑定
+## 数据绑定
 
 ### 双向绑定 v-model
 
@@ -72,7 +72,7 @@
 </script>
 ```
 
-## 三，模板语法  {{}}
+## 模板语法  {{}}
 
 ```html
 <div id="app">
@@ -93,7 +93,7 @@
 </script>
 ```
 
-## 四，事件监听 v-on: @
+## 事件监听 v-on: @
 
 ```html
 <div id="app">
@@ -121,7 +121,7 @@
 </script>
 ```
 
-## 五，计算属性 computed
+## 计算属性 computed
 
 ```html
 <div id="app">
@@ -178,7 +178,7 @@
 </script>
 ```
 
-## 六，监视 watch
+## 监视 watch
 
 ```html
 <div id="app">
@@ -211,7 +211,7 @@
 </script>
 ```
 
-## 七，样式绑定
+## 样式绑定
 
 ### class绑定
 
@@ -275,7 +275,7 @@
 </script>
 ```
 
-## 八，条件渲染
+## 条件渲染 v-if
 
 ```html
 <div id="app">
@@ -303,7 +303,7 @@
 </script>
 ```
 
-## 九，列表渲染
+## 列表渲染 v-for
 
 ```html
 <div id="app">
@@ -344,9 +344,9 @@
 </script>
 ```
 
-## 十，生命周期
+## 生命周期
 
-## 十一，过滤器
+## 过滤器
 
 ```html
 <head>
@@ -389,15 +389,7 @@
 </script>
 ```
 
-## 十二，自定义指令
-
-## 十三，插件
-
-```javascript
-Vue.use(myplugin);
-```
-
-# Vue-Cli
+# Vue-cli
 
 vue-cli 是创建项目的工具
 
@@ -411,7 +403,7 @@ npm i vue-cli -g    全局安装vue-cli
 **初始化项目**
 
 ```
-vue init webpack test1        在当前目录创建名为test1的项目
+vue init webpack test1        在当前目录创建名为test1的项目,不写则直接使用当前文件夹
 ```
 
 运行项目
@@ -428,7 +420,7 @@ npm run dev
 
 创建好的文件目录下，我们的代码会写在src目录下，先删除默认的components，main.js，App.vue
 
-### 组件
+### 组件 components
 
 创建components文件夹，新建一个vue模板文件,Hello.vue,(在webstrom中可以添加或修改vue模板)
 
@@ -442,7 +434,7 @@ npm run dev
 <script>
   export default {  //es6模块化语法,默认格式,默认对外暴露一个对象,语法和vue一样
     //es6语法，属性值为匿名函数简写，相当于data:function(){}
-    data(){   // data属性可以写对象，也可以写函数，但是这里必须函数，返回数据对象
+    data(){   // data属性除了main.js可以写对象，其他地方必须函数，返回数据对象
       return {
         msg:"hello vue-cli"
       };
@@ -459,7 +451,7 @@ npm run dev
 
 ```
 
-### 根组件
+### 根组件  App.vue
 
 在src目录下创建App.vue,
 
@@ -490,7 +482,7 @@ npm run dev
 
 ```
 
-### 入口
+### 入口  main.js
 
 在src创建main.js，名称不可变
 
@@ -509,7 +501,7 @@ new Vue({
 
 ```
 
-### 主页面
+### 主页面  index.html
 
 项目根目录下会有index.html,只需要一个div节点指定id
 
@@ -569,3 +561,284 @@ serve dist
 重新编译打包  npm run build
 
 然后拷贝dist出来，更改文件夹名为刚才的项目名,把文件夹拷贝到springboot下的static目录下,即可按路径访问
+
+## 组件间通信
+
+### props
+
+在根组件App.vue中定义，todos数组和删除的方法,通过给组件设置属性传入对象
+
+```vue
+<template>
+  <div>
+    <todo-list :todos="todos" :delTodoA="delTodoA"/>
+      <!--标签的使用可以 TodoList 也可以 todo-list 推荐小写-->
+      <!--通过设置属性把对象传入，可以是对象，方法，变量-->
+  </div>
+</template>
+
+<script>
+  import TodoList from "./components/TodoList"
+  //1导入组件
+    export default { 
+      components:{
+        TodoList  //2声明组件为标签
+      },
+      data(){
+        return {
+            todos:[
+                {title:"aaa"},
+                {title:"bbb"},
+                {title:"ccc"}
+            ]
+        }
+      },
+      methods:{
+        delTodoA(index){
+          this.todos.splice(index,1)
+        }
+      }
+    }
+</script>
+
+<style>
+
+</style>
+
+```
+
+在todolist组件中通过props接收参数，并声明类型
+
+```vue
+<template>
+  <ul>
+    <todo-item v-for="(todo,index) in todos" :key="index" 
+               :index="index" :todo="todo" :delTodoA="delTodoA"/>
+      <!--通过v-for遍历子组件，并向子组件传入数据-->
+  </ul>
+</template>
+
+<script>
+  import TodoItem from "./TodoItem"  //注意路径
+    
+    export default {
+      components:{
+        TodoItem
+      },
+      props:{         //通过props接收参数并声明类型
+        todos:Array,
+        delTodoA:Function
+      }
+    }
+</script>
+
+<style>
+
+</style>
+
+
+```
+
+在todoitem中继续接收参数
+
+```vue
+<template>
+	<li>任务:{{todo.title}} <button @click="delTodo">删除</button></li>
+</template>
+
+<script>
+    export default {
+      props:{          //继续接收参数
+        todo:Object,
+        index:Number,
+        delTodoA:Function
+      },
+      methods:{
+        delTodo(){
+          let {delTodoA,index,todo}=this     //解构赋值
+          if(window.confirm(`确认删除${todo.title}吗`)){  //模板字符串
+            delTodoA(index)      //调用根组件传过来的方法
+          }
+        }
+      }
+    }
+</script>
+
+<style>
+
+</style>
+
+```
+
+组件之间父子关系，通过父组件给子组件设置属性的方式传参数，子组件通过props接收，可以逐级传递
+
+### 自定义事件  @
+
+如果子组件想要调用父组件的方法，可以通过props传方法，也可以自定义事件
+
+```vue
+<template>
+  <div>
+    <todo-head @addTodoA="addTodoA"/>
+    <!--通过@事件名="回调函数"  来为一个组件绑定自定义事件-->
+  </div>
+</template>
+
+<script>
+  import TodoHead from "./components/TodoHead"
+
+    export default {
+     components:{
+         TodoHead
+     },
+     data(){
+        return {
+            todos:[
+                {title:"aaa"},
+                {title:"bbb"},
+                {title:"ccc"}
+            ]
+        }
+      },
+      methods:{
+        addTodoA(todo){       //添加的函数
+          this.todos.push(todo)
+        }
+      }
+    }
+</script>
+
+<style>
+
+</style>
+
+```
+
+在todohead中，通过emit来触发事件
+
+```vue
+<template>
+  <div>
+    <input v-model="title" @keyup.enter="addTodoA" placeholder="请输入任务"/>
+      <!--输入框绑定回车事件-->
+  </div>
+</template>
+
+<script>
+    export default {
+      props:{
+		//不再接收函数
+      },
+      data(){
+        return{
+          title:""
+        }
+      },
+      methods:{
+        addTodoA(){
+          let {title}=this   //解构赋值
+          let todo={title}
+
+          //通过vm对象的$emit("事件名",数据)来触发自定义事件,只能用于直接父子组件
+          this.$emit("addTodoA",todo)
+            
+          this.title=""
+        }
+      }
+    }
+</script>
+
+<style>
+
+</style>
+
+```
+
+### 消息系统  pubsub
+
+由于自定义事件无法用于多重父子组件的关系，可以通过pubsub-js来实现消息订阅和发布，来触发事件
+
+1,安装pubsub
+
+```bash
+npm i -s pubsub-js
+```
+
+2,引入pubsub
+
+```js
+import PubSub from "pubsub-js"
+```
+
+3,在根组件的生命周期方法中，订阅消息，
+
+```js
+   export default { 
+	//其他部分省略
+       
+      //生命周期函数，初始化
+      mounted(){
+         //通过subscribe("主题",回调函数)
+        PubSub.subscribe("delTodo",function (msg,data) {
+          console.log(`sub ${msg} `)  //此处的msg为发布消息的主题
+          this.delTodo(data)
+        }.bind(this))//由于是回调函数，函数内部的this不再是vm，通过bind函数，传入vm，或者使用箭头函数
+      
+      },
+      methods:{
+        delTodo(index){
+          this.todos.splice(index,1)
+        }
+      }
+    }
+```
+
+在子孙组件中发布消息，会触发回调函数
+
+```js
+PubSub.publish("delTodo",data)   //第一个参数为主题，也是回调函数的msg
+```
+
+通过该插件可以不用考虑关系层数
+
+### 插槽 slot
+
+在父组件中计算好属性的标签通过插槽，到对应的位置 ,在使用子组件的时候在里面写模板标签,slot="name"
+
+```html
+<todo-foot :todos="todos" :delSelect="delSelect">
+    <span slot="count">已完成{{completeSize}}项</span>
+</todo-foot>
+```
+
+在子组件中通过slot标签来占位，父组件传入同名的slot
+
+```html
+<slot name="count">定义一个插槽占位</slot>
+```
+
+## ajax
+
+在vue2中使用axios库来发送ajax，react也是用的这个
+
+```bash
+npm i -s axios
+```
+
+使用
+
+```js
+import axios from "axios"   
+
+let url="https://api.github.com/search/repositories?q=v&sort=stars"
+axios.get(url).then(function (response) {
+    console.log(response.data.items[0].name) //vue
+}).catch(function (error) {
+    console.log(error)
+})
+```
+
+# vue-router
+
+# vuex
+
