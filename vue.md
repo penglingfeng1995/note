@@ -840,5 +840,114 @@ axios.get(url).then(function (response) {
 
 # vue-router
 
+路由可以在一个单页应用spa中，管理页面
+
+## 基本使用
+
+安装
+
+```bash
+npm i -s vue-router
+```
+
+路由组件，相当于页面，通常放在  pages下，在`src/pages`下创建两个路由组件,`Home.vue `  `About.vue`
+
+```vue
+<template>
+    <div>
+      Home page
+    </div>
+</template>
+
+<script>
+    export default {}
+</script>
+
+<style>
+
+</style>
+
+```
+
+配置路由器，在`src/router `下创建`index.js  `,在路由器中注册路由组件
+
+```js
+import Vue from "vue"              //导入vue
+import VueRouter from "vue-router" //导入路由
+
+import Home from "../pages/Home"  //导入路由组件
+import About from "../pages/About" //注意路径
+
+Vue.use(VueRouter)         //使用路由
+
+export default new VueRouter({  //配置映射
+      routes:[          //routes 对应一个数组
+        {
+          path:"/",     //默认路径
+          redirect:"/home"  //重定向到一个路径
+        },
+        {
+          path:"/home",    //路径
+          component:Home   //路由组件
+        },
+        {
+          path:"/about",
+          component:About
+        }
+      ]
+
+})
+
+```
+
+注册路由器,在main.js中添加配置
+
+```js
+import Vue from 'vue'
+import App from './App'
+import router from "./router"  //导入路由器,会自动找index.js
+
+
+new Vue({
+  el: '#app',
+  router,          //配置上路由器
+  components: { App },
+  template: '<App/>'
+})
+
+```
+
+在`App.vue`中配置超链接和页面,使用`router-link`和`router-view`配置连接和显示
+
+```vue
+<template>
+    <div>
+      <router-link to="/home">home link</router-link>
+      <!--配置两个超链接-->
+      <router-link to="/about">about link</router-link>
+        
+      <router-view></router-view>     
+      <!--这个标签会显示当前路由组件-->
+    </div>
+</template>
+
+<script>
+    export default {}
+</script>
+
+<style>
+
+</style>
+
+```
+
+运行
+
+```bash
+npm start
+```
+
+可以在页面中看到两个`a`标签和主页面
+
 # vuex
 
