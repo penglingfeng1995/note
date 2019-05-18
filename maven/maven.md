@@ -573,7 +573,7 @@ profiles可以针对激活的profile做出一些特殊的处理，常用于不�
 
 ### tomcat7
 
-使用tomcat7插件可以不使用真正的tomcat启动服务， 命令 `mvn tomcat7:run`,
+使用tomcat7插件可以不使用真正的tomcat启动服务， 命令 `mvn tomcat7:run`,方便启动
 
 ```xml
 <build>
