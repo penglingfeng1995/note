@@ -434,7 +434,7 @@ site:生成站点
 </modules>
 ```
 
-聚合工程执行父项目命令，子项目同样会执行
+聚合工程执行父项目命令，子项目同样会执行相同的命令
 
 ## 构建过程
 
@@ -571,7 +571,30 @@ profiles可以针对激活的profile做出一些特殊的处理，常用于不�
 
 ## 常用插件
 
-1.tomcat7
+### tomcat7
+
+使用tomcat7插件可以不使用真正的tomcat启动服务， 命令 `mvn tomcat7:run`,
+
+```xml
+<build>
+    <plugins>
+
+        <plugin>
+            <groupId>org.apache.tomcat.maven</groupId>
+            <artifactId>tomcat7-maven-plugin</artifactId>
+            <version>2.2</version>
+            <configuration>
+                <path>/zoe</path>
+                <port>9090</port>
+                <uriEncoding>UTF-8</uriEncoding>
+            </configuration>
+        </plugin>
+
+    </plugins>
+</build>
+```
+
+
 
 
 
