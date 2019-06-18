@@ -1,42 +1,45 @@
 # log4j的基本使用
 
-1,导入jar包,`log4j-1.2.17.jar`,
+1,引入log4j的依赖
 
-2,在src下编写`log4j.properties`作配置信息
+```xml
+<dependency>
+    <groupId>log4j</groupId>
+    <artifactId>log4j</artifactId>
+    <version>1.2.17</version>
+</dependency>
+```
+
+2,在`src/main/resources`下编写`log4j.properties`作配置信息
 
 ```properties
-#注册目的地，并设置消息等级
-log4j.rootLogger=debug,myAppender
-#myAppender是自定义的日志目的地的名称，选择在Console控制台输出
-log4j.appender.myAppender=org.apache.log4j.ConsoleAppender
-#输出的格式为SimpleLayout简单格式，值包含日志等级和日志主体
-log4j.appender.myAppender.layout=org.apache.log4j.SimpleLayout
+# 设置根logger的级别为info，使用STDOUT这个appender
+log4j.rootLogger=info,STDOUT
+
+# 定义了一个名为STDOUT的appender,及属性
+log4j.appender.STDOUT=org.apache.log4j.ConsoleAppender
+log4j.appender.STDOUT.layout=org.apache.log4j.PatternLayout
+log4j.appender.STDOUT.layout.conversionPattern=%d{yyyy-MM-dd HH:mm:ss:SSS} %m%n
 ```
 
 3,编写测试类
 
+log4j的核心api为`org.apache.log4j.Logger`,通过静态方法得到实例
+
 ```java
-public class MyTest {
-	//得到logger对象，用来输出日志,通常加载当前类
-	private static Logger logger=Logger.getLogger(MyTest.class);
-	
-	public static void main(String[] args) {
-        //输出日志
-		logger.debug("logger.debug这是调试");
-		logger.info("logger.info这是消息");
-		logger.warn("logger.warn这是警告");
-		logger.error("logger.error这是错误");
-	}
+import org.apache.log4j.Logger;
+import org.junit.Test;
+
+public class Log4jTest {
+
+    private static final Logger LOG = Logger.getLogger(Log4jTest.class);
+
+    @Test
+    public void test1(){
+        LOG.info("log4j测试");
+        LOG.error("异常",new Exception("文件不存在"));
+    }
 }
-```
-
-4,控制台上显示
-
-```java
-DEBUG - logger.debug这是调试
-INFO - logger.info这是消息
-WARN - logger.warn这是警告
-ERROR - logger.error这是错误
 ```
 
 ### 日志的等级
