@@ -2,6 +2,8 @@
 
 jul 是jdk自带的api，无需引入任何依赖
 
+核心接口都在`java.util.logging`下
+
 ```java
 import org.junit.Test;
 
@@ -20,4 +22,8 @@ public class JULTest {
 }
 
 ```
+
+默认的配置在`jre/lib/logging.proeprties`中
+
+tomcat 使用jul配置在`tomcat/conf/logging.properties`中
 
