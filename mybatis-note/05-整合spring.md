@@ -1,6 +1,26 @@
 # 整合spring
 
-1，导入spring-mybatis的整合包,
+1，导入spring-mybatis的整合包,和一个连接池的依赖,和spring-jdbc
+
+```xml
+<dependency>
+    <groupId>org.mybatis</groupId>
+    <artifactId>mybatis-spring</artifactId>
+    <version>1.3.2</version>
+</dependency>
+
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-jdbc</artifactId>
+    <version>5.1.2.RELEASE</version>
+</dependency>
+
+<dependency>
+    <groupId>com.alibaba</groupId>
+    <artifactId>druid</artifactId>
+    <version>1.1.17</version>
+</dependency>
+```
 
 2,配置spring-mvc.xml
 
@@ -41,51 +61,40 @@ url=jdbc:mysql://192.168.1.111:3306/test
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xmlns:aop="http://www.springframework.org/schema/aop"     xmlns:context="http://www.springframework.org/schema/context"
-xmlns:tx="http://www.springframework.org/schema/tx"
-xsi:schemaLocation="
-        http://www.springframework.org/schema/beans 
-        http://www.springframework.org/schema/beans/spring-beans.xsd
-        http://www.springframework.org/schema/context 
-        http://www.springframework.org/schema/context/spring-context.xsd
-        http://www.springframework.org/schema/aop 
-        http://www.springframework.org/schema/aop/spring-aop.xsd
-        http://www.springframework.org/schema/tx 
-        http://www.springframework.org/schema/tx/spring-tx.xsd">
-        
-        <!-- 加载刚刚的db.properties -->
-	    <context:property-placeholder location="classpath:db.properties"/>
-	     <!-- 用spring实例化数据源,可以使用c3p0,dbcp等，这里使用了阿里巴巴的druid数据源 -->
-	     <bean  id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
-	     	<!-- 千万别用${username}一定要换个名字 -->
-        	<property name="username" value="${jdbc.username}"></property>
-        	<property name="password" value="${password}"></property>
-        	<property name="url" value="${url}"></property>
-        	<property name="driverClassName" value="${driver}"></property>
-        </bean>
-        <!-- 实例化sqlsession工厂 -->
-        <bean id="sqlSessionFactoryBean" class="org.mybatis.spring.SqlSessionFactoryBean">
-        	<!-- 加载数据源 -->
-        	<property name="dataSource" ref="dataSource"></property>
-        	<!-- 加载mybatis-config.xml -->
-        	<property name="configLocation" value="classpath:mybatis-config.xml"></property>
-        </bean>
-        <!-- 开启mapper扫描配置 -->
-        <bean  class="org.mybatis.spring.mapper.MapperScannerConfigurer">
-        	<!-- 指定要扫描的包 -->
-        	<property name="basePackage" value="com.znsd.mapper"></property>
-        	<!-- 指定sqlsession工厂 -->
-        	<property name="sqlSessionFactoryBeanName" value="sqlSessionFactoryBean"></property>
-        	<!-- 指定@Repository为注解 -->
-        	<property name="annotationClass" value="org.springframework.stereotype.Repository"></property>
-        </bean>
-        <!-- 实例化spring的事务管理器 -->
-        <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
-        	<property name="dataSource" ref="dataSource"></property>
-        </bean>
-        <!-- 开启注解的方式使用事物 -->
-        <tx:annotation-driven transaction-manager="transactionManager"/>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+    
+    <context:property-placeholder location="classpath:db.properties"/>
+    <!-- 用spring实例化数据源,可以使用c3p0,dbcp等，这里使用了阿里巴巴的druid数据源 -->
+    <bean  id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <!-- 千万别用${username},会拿到系统用户,一定要换个名字 -->
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <!-- druid会自动分辨数据库驱动 ,不需要指定驱动类-->
+    </bean>
+    <!-- 实例化sqlsession工厂 -->
+    <bean id="sqlSessionFactoryBean" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!-- 加载数据源 -->
+        <property name="dataSource" ref="dataSource"/>
+        <!--指定mapper.xml的位置-->
+        <property name="mapperLocations" value="classpath*:mapper/*.xml"/>
+    </bean>
+    <!-- 开启mapper扫描配置 -->
+    <bean  class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!-- 指定要扫描的包 -->
+        <property name="basePackage" value="com.plf.zoe.mapper"/>
+        <!-- 指定sqlsession工厂 -->
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactoryBean"/>
+    </bean>
+    <!-- 实例化spring的事务管理器 -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+    <!-- 开启注解的方式使用事物 -->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
 </beans>
 ```
 

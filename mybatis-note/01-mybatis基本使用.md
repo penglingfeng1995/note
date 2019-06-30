@@ -2,7 +2,21 @@
 
 ### 一，纯XML模式
 
-1,导入jar包`mybatis-3.4.5.jar`,和mysql的jar包
+1,导入mybatis的依赖和对应数据库的依赖
+
+```xml
+<dependency>
+    <groupId>org.mybatis</groupId>
+    <artifactId>mybatis</artifactId>
+    <version>3.4.6</version>
+</dependency>
+
+<dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+    <version>5.1.43</version>
+</dependency>
+```
 
 2，编写db.properties配置数据库的信息
 
