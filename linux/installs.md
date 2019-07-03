@@ -73,15 +73,7 @@ ALTER USER 'root'@'localhost' IDENTIFIED BY '123456';
 
 ![](imgs/38.png)
 
-exit 退出
-
-9,移除之前的yum源，避免自动更新
-
-```bash
-yum -y remove mysql57-community-release-el7-10.noarch
-```
-
-10,开启远程访问
+9,开启远程访问
 
 进入mysql
 
@@ -93,6 +85,14 @@ grant all privileges on *.* to 'root'@'%' identified by '123456' with grant opti
 
 ```bash
 flush privileges; 
+```
+
+退出 exit
+
+10,移除之前的yum源，避免自动更新
+
+```bash
+yum -y remove mysql57-community-release-el7-10.noarch
 ```
 
 11,防火墙开放端口
