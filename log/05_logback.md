@@ -32,7 +32,7 @@ logback是slf4j的典型实现，需要与slf4j配合使用
 <configuration>
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss:SSS} %m%n</pattern>
+            <pattern>%d %c %m %n</pattern>
         </encoder>
     </appender>
 
