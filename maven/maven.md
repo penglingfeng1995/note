@@ -584,8 +584,8 @@ profiles可以针对激活的profile做出一些特殊的处理，常用于不�
             <artifactId>tomcat7-maven-plugin</artifactId>
             <version>2.2</version>
             <configuration>
-                <path>/zoe</path>
-                <port>9090</port>
+                <path>/</path>
+                <port>8080</port>
                 <uriEncoding>UTF-8</uriEncoding>
             </configuration>
         </plugin>
