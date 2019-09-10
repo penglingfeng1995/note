@@ -449,15 +449,31 @@ $ git pull testgg feature_a
 
 ### 8,SSH免密
 
-进入用户的根目录 user/用户名/，`cd ~`,
+打开git-bash,执行以下命令
 
 ```
-$ ssh-keygen -t rsa -C plf1995@aliyun.com
+$ ssh-keygen -t rsa -C penglingfeng
 ```
 
-后面直接选择默认值回车，会生成`.ssh`目录，打开pub文件，复制key，到github上添加,用户settings，add SSH key,
+![](img/1.png)
 
-win10会有证书，不用每次都输密码，win7没用证书，用ssh推送更好
+后面直接选择默认值回车，
+
+![](img/2.png)
+
+会在用户目录生成`.ssh`目录，文本打开pub文件，ctrl+A ctrl+C,复制ssh-key
+
+到github上打开settings
+
+![](img/4.png)
+
+粘贴刚复制的key，自定义一个title，添加
+
+![](img/5.png)
+
+
+
+
 
 ## 三，Eclipse中操作
 
