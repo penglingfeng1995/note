@@ -445,7 +445,25 @@ $ git pull testgg feature_a
 
 点击fork即可拷贝一份同样的代码到自己的远程库
 
-修改提交推送到自己的远程库中，新建并发送pull request ，请求,主人觉得没问题，即可merge
+![](img/9.png)
+
+在自己的用户下，会fork一份
+
+![](img/10.png)
+
+提交代码先提交自己的远程库，再提交`Pull request`提交到中央库
+
+![](img/11.png)
+
+新建pull request
+
+![](img/12.png)
+
+更新代码，同样提交一个pr，只是把目标改成自己的远程库，源改为中央库
+
+![](img/13.png)
+
+目标库的权限人，觉得ok，合并pr
 
 ### 8,SSH免密
 
