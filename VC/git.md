@@ -471,7 +471,13 @@ $ ssh-keygen -t rsa -C penglingfeng
 
 ![](img/5.png)
 
+tortoiseGit中还需指定ssh程序的路径
 
+![](img/6.png)
+
+使用ssh的方式clone代码
+
+![](img/8.png)
 
 
 
