@@ -293,27 +293,45 @@ cal : 查看日历
 
 权限分为三种
 
-r ：读
+r ：读 =4
 
-w : 写
+w : 写 =2
 
-x : 执行
+x : 执行 =1
 
 通过ll可以查看文件详情
 
 ![](imgs/34.png)
 
-第一个字符代表文件类型 ，- 为文件 ，d为文件夹
+第一个字符代表文件类型 ，- 为文件 ，d为文件夹，l为链接
 
 然后是三组rwx权限，分别为所有者， 所在组，其他组, -表示没有权限
 
-然后依次是所有者,所在组
+后面的数字，如果时文件，代表该文件的硬连接数，如果是dir，表示子目录数
 
-chown  用户名 文件名 : 修改文件所有者
+接着是所属用户和用户组
 
-chgrp 组名 文件名 : 修改文件所在组
+接着的数字，如果是文件代表，文件大小byte。目录则为4096
 
+后续为文件的最后修改时间
 
+**更改权限**
+
+使用 chmod 给用户 u 所有者，g 所在组，o 其他组，a 所有人修改权限
+
+使用 `+ - =`的方式
+
+`chmod u=rwx,o=rw ok.txt` 设置所有者为rwx，其他组为rw
+
+`chmod u-x ok.txt` 给所有者减去x权限
+
+`chmod g+w ok.txt` 给所在组增加w权限
+
+还可以使用数字的方式
+
+r=4 ,w=2,x=1  比如 7=4+2+1,就是全部权限
+
+`chmod 777 ok.txt` 给文件全部赋予7的权限
 
 ### 用户管理
 
@@ -354,4 +372,72 @@ linux默认会有一个超级用户root，还有其他用户，用户至少属�
 `useradd -g 组名 用户名` :创建用户指定组
 
 `usermod -g 组 用户名` :修改用户组
+
+`chown  用户名 文件名` : 修改文件所有者
+
+`chgrp 组名 文件名` : 修改文件所在组
+
+`chown 用户名:组名 file` 同时修改所有者和所在组，加上`-R`可以时目录递归更改
+
+### 任务调度
+
+crontab [opts]
+
+options:
+
+-l :查看
+
+-e ：编辑
+
+使用cron表达式 加 要执行的任务命令
+
+分钟(0-59) 小时(0-23) 天(1-31)  月(1-12) 周(0-7),可以使用`*`代表所有
+
+-r ：删除
+
+### 磁盘
+
+`lsblk`：查看分区 。 -f  查看类型
+
+`df -h`: 查看磁盘
+
+### 网络
+
+### 进程
+
+ps [opts] ： 查看进程
+
+opts:
+
+通常与grep搭配使用
+
+`ps -ef|grep tomcat` 查看tomcat运行
+
+`kill pid` ：停止进程。`-9`强制停止
+
+### 服务
+
+centos6:service 服务名  [start,stop,restart,reload,status]
+
+centos7:systemctl   [start,stop,restart,reload,status] 服务名
+
+例如
+
+`systemctl status firewalld` 查看防火墙状态
+
+`netstat -anp` 监控网络状态
+
+### 软件包
+
+rpm是redhat packages manager,一种安装包管理器，后被广泛应用
+
+`rpm -qa |grep firefox` 查询已安装的rpm
+
+`rpm -e firefox` 删除rpm包
+
+yum 基于rpm，可以从指定服务器上下载安装，并自动处理依赖关系
+
+`yum list |grep jdk` 查询软件
+
+`yum install firefox`,下载并安装，默认最新版本
 
