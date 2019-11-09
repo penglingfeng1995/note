@@ -268,6 +268,8 @@ aoi的区别是进入插入模式的光标位置的区别，一般用`i`,
 
 `!shell` 叹号加可以执行系统命令，回车回来，比如  `!ls /`显示根目录
 
+`set number` 显示行号
+
 ### 关机 
 
 ```bash
@@ -402,6 +404,21 @@ options:
 `df -h`: 查看磁盘
 
 ### 网络
+
+centos7:
+
+`netstat -tlunp` : 查看本地监听的端口
+
+`iptables-save` 查看防火墙开放的端口
+
+暴露新的端口并重载
+
+```bash
+firewall-cmd --zone=public --add-port=80/tcp --permanent
+firewall-cmd --reload
+```
+
+
 
 ### 进程
 
