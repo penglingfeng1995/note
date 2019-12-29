@@ -3,19 +3,18 @@
 logback是slf4j的典型实现，需要与slf4j配合使用
 
 ```xml
-<!--slf4j的接口-->
 <dependency>
     <groupId>org.slf4j</groupId>
     <artifactId>slf4j-api</artifactId>
     <version>1.7.25</version>
 </dependency>
-<!--slf4j与logback的桥接器-->
+
 <dependency>
     <groupId>ch.qos.logback</groupId>
     <artifactId>logback-classic</artifactId>
     <version>1.2.3</version>
 </dependency>
-<!--logback的实现-->
+
 <dependency>
     <groupId>ch.qos.logback</groupId>
     <artifactId>logback-core</artifactId>
@@ -32,7 +31,7 @@ logback是slf4j的典型实现，需要与slf4j配合使用
 <configuration>
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d %c %m %n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %5p --- [%15.15t] %-40.40c{40} : %m %n</pattern>
         </encoder>
     </appender>
 
@@ -228,3 +227,6 @@ TimeBasedRollingPolicy 会安装配置的文件格式，按照时间滚动触发
 `num` 最小长度 ,不够使用空格填充
 
 比如 `%-5p` ,设置日志等级为左对齐，最小5个长度
+
+`%-40.40c{40}`  第一个`-40`表示最小长度不够使用空格填充，前面带`-`表示左对齐，第二个`.40` 表示最大长度超过会被截断，c 为logger名称，`{40}` 为缩写logger名称使其小于指定长度，但是类名始终都会全显示，包名至少一个字符
+
