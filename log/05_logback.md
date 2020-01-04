@@ -2,22 +2,12 @@
 
 logback是slf4j的典型实现，需要与slf4j配合使用
 
-```xml
-<dependency>
-    <groupId>org.slf4j</groupId>
-    <artifactId>slf4j-api</artifactId>
-    <version>1.7.25</version>
-</dependency>
+会自动依赖实现 `logback-core` ,和接口`slf4j-api`
 
+```xml
 <dependency>
     <groupId>ch.qos.logback</groupId>
     <artifactId>logback-classic</artifactId>
-    <version>1.2.3</version>
-</dependency>
-
-<dependency>
-    <groupId>ch.qos.logback</groupId>
-    <artifactId>logback-core</artifactId>
     <version>1.2.3</version>
 </dependency>
 ```
