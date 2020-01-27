@@ -163,6 +163,13 @@ npm r math
 npm install 
 ```
 
+### 使用阿里镜像
+
+```bash
+npm install --registry=https://registry.npm.taobao.org --loglevel=silly
+npm cache clean --force
+```
+
 ## 三,fs模块
 
 ### 同步文件写入
