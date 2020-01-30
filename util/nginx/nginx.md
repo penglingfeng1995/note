@@ -163,6 +163,15 @@ http 块，包含 http全局和server块, server块又包含全局server 和 loc
         }
 ```
 
+也可以使用 正则的方式,当访问以下后缀时，去指定目录找
+
+```
+location ~ .*\.(js|css|html|map)?$ {
+	root /student/student-fe;
+	expires 1h;
+}
+```
+
 
 
 # 集群
