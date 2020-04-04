@@ -623,5 +623,5 @@ public class Student {
 
 设置分支名，根据实际情况勾选是否推送到远程库，checkout 为切换分支
 
-## 四，gitlab
+## 
 
