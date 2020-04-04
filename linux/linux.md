@@ -418,6 +418,10 @@ firewall-cmd --zone=public --add-port=80/tcp --permanent
 firewall-cmd --reload
 ```
 
+查看占用该端口的进程
+
+`lsof -i:8082`
+
 
 
 ### 进程
