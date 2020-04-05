@@ -1,6 +1,4 @@
-## centos7 
-
-### mysql
+# mysql
 
 在线安装
 
@@ -110,6 +108,43 @@ firewall-cmd --reload
 12,然后就可以使用工具连接
 
 ![](imgs/39.png)
+
+
+
+# jdk
+
+1,查看旧版本
+
+```bash
+java -version
+```
+
+2,查看安装包
+
+```bash
+rpm -qa | grep java
+```
+
+3,卸载旧版本
+
+```bash
+rpm -e --nodeps java-1.7.0-openjdk
+```
+
+4,解压安装包
+
+```bash
+tar -zxvf OpenJDK11U-jdk_x64_linux_hotspot_11.0.6_10.tar.gz
+```
+
+5,编辑 `/etc/profile` ，设置环境变量
+
+```bash
+export JAVA_HOME=/java/jdk11
+export PATH=$PATH:$JAVA_HOME/bin
+```
+
+激活 `source /etc/profile`
 
 
 
