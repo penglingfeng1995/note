@@ -1,4 +1,4 @@
-# mysql
+# mysql5
 
 在线安装
 
@@ -110,6 +110,109 @@ firewall-cmd --reload
 ![](imgs/39.png)
 
 
+
+# mysql8
+
+centos7安装mysql8
+
+1,检测是否安装过mysql
+
+```bash
+rpm -qa | grep -i mysql
+```
+
+如果安装过，则是要yum删除
+
+```bash
+yum -y remove MySQL-*
+```
+
+查找有关mysql的目录
+
+```bash
+find / -name mysql
+```
+
+删除找到的目录，后再次查找检测
+
+```bash
+rm -rf {目录}
+```
+
+删除默认配置和密码
+
+```bash
+rm -rf /etc/my.cnf
+rm -rf /root/.mysql_sercret
+```
+
+2,安装
+
+指定rpm源
+
+```bash
+sudo rpm -Uvh https://dev.mysql.com/get/mysql80-community-release-el7-3.noarch.rpm
+```
+
+安装，按y执行，最后完毕
+
+```bash
+sudo yum --enablerepo=mysql80-community install mysql-community-server
+```
+
+3,启动
+
+```bash
+sudo service mysqld start
+```
+
+查看状态，得到 `active (running)`
+
+```bash
+service mysqld status
+```
+
+4,配置
+
+获取root临时密码
+
+```bash
+grep "A temporary password" /var/log/mysqld.log
+```
+
+使用root登录
+
+```bash
+ mysql -uroot -p
+```
+
+尝试修改root用户在本机登录的密码
+
+```bash
+alter user 'root'@'localhost' identified by '123456';
+```
+
+此时会报错，提示密码不安全
+
+修改密码复杂度和长度
+
+```bash
+set global validate_password.length=6;
+set global validate_password.policy=0;
+set global validate_password.check_user_name=off;
+```
+
+再次修改密码，成功
+
+创建允许外部远程连接的用户,并授权
+
+```bash
+create user 'root'@'%' identified by '123456';
+grant all privileges on *.* to 'root'@'%' with grant option;
+flush privileges;
+```
+
+暴露 3306 端口
 
 # jdk
 
