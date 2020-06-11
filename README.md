@@ -67,5 +67,12 @@ var a = 1;
 `div`
 ```
 
+# linux
+
+```bash
+firewall-cmd --zone=public --add-port=80/tcp --permanent
+firewall-cmd --reload
+```
+
 
 
