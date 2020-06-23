@@ -67,6 +67,12 @@ var a = 1;
 `div`
 ```
 
+删除线
+
+```markdown
+~~删除线~~
+```
+
 # linux
 
 ```bash
