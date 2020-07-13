@@ -1,6 +1,6 @@
 # CRUD操作
 
-### 几个小技巧
+## 几个小技巧
 
 1，类型别名
 
@@ -76,7 +76,7 @@ statement配置的时候将原来的resultType改为resultMap，值为对应的r
 </select>
 ```
 
-### CRUD
+## CRUD
 
 配置statement,使用#{属性名}，可以自动将该对象的属性注入,parameterType就是参数类型,这里使用了别名
 
@@ -123,11 +123,35 @@ sqlSession.commit();
 sqlSession.close();
 ```
 
-### 多个参数传入
+### insert ID 回显
+
+当执行insert操作，主键是自增的，插入后，主键可以自动赋值给原对象
+
+```xml
+<insert id="insert">
+    <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Long">
+        SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into t_student(student_name) values (#{studentName});
+</insert>
+```
+
+ex:
+
+```java
+TStudent tStudent = new TStudent();
+// 主键自增不需设置
+tStudent.setStudentName("测试id2");
+studentMapper.insert(tStudent);
+// 主键已赋值
+log.info(tStudent.getId().toString());
+```
+
+## 多个参数传入
 
 除了上面的把多个参数包装成一个对象，用#{属性}取值,还有三种办法可以传多个参数
 
-#### 1,注解
+### 1,注解
 
 在参数前加@Param,设置属性value
 
@@ -146,7 +170,7 @@ statement中可以直接用#{value}取值，值填写刚设置的value,不用写
 </select>
 ```
 
-#### 2,下标
+### 2,下标
 
 接口中的方法
 
@@ -172,7 +196,7 @@ xml
 </select>
 ```
 
-#### 3,使用Hashmap
+### 3,使用Hashmap
 
 接口中的方法
 
