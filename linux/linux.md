@@ -422,6 +422,13 @@ firewall-cmd --reload
 
 `lsof -i:8082`
 
+修改 hosts 并激活
+
+```bash
+sudo vi /etc/hosts
+sudo /etc/init.d/network restart
+```
+
 
 
 ### 进程
