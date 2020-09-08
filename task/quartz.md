@@ -233,3 +233,43 @@ Trigger trigger = TriggerBuilder.newTrigger()
     .build();
 ```
 
+## SimpleTrigger
+
+简单的触发器，可用定义一个任务，什么时候执行，执行几次。
+
+ex: 不做任何设置，立即触发，只执行一次。可用通过以上的设置触发时间
+
+```java
+Trigger trigger =TriggerBuilder.newTrigger()
+    .withIdentity("trg1", "group1")
+    .build();
+```
+
+ex: 绑定一个调度规则，此时生成的对象为 SimpleTrigger ，
+
+repeat 表示重复，interval 表示间隔 ，两者需配合设置。只设置间隔，不设置重复，将只执行一次。只设置重复，不设置间隔或间隔为0会报错。
+
+```java
+SimpleTrigger trigger = TriggerBuilder.newTrigger()
+    .withIdentity("trg1", "group1")
+    .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                  .withIntervalInSeconds(3)
+                  .repeatForever())
+    .build();
+```
+
+以上 方法是 `withIntervalInSeconds` 表示每次执行间隔多少秒，类似的方法还有 `withIntervalInMilliseconds` 毫秒，`withIntervalInMinutes` 分钟，`withIntervalInHours` 小时。
+
+`repeatForever()` 表示一直重复，直到结束时间。 还可以使用`withRepeatCount()` 指定重复次数。
+
+```java
+SimpleTrigger trigger = TriggerBuilder.newTrigger()
+    .withIdentity("trg1", "group1")
+    .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                  .withIntervalInMinutes(1)
+                  .withRepeatCount(3))
+    .build();
+```
+
+以上代码，设置重复n次，总共会执行 n+1 次任务。
+
