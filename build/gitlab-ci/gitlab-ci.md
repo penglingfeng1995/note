@@ -85,6 +85,31 @@ helloJob02:
   script: echo hello222
 ```
 
+我们可以定义更复杂的任务，如编译maven项目,前提是gitlab-runner 所在机器需要安装 maven，并且能够访问maven仓库。
+
+script 也可以是一个数组，定义多条命令。
+
+```yaml
+compileJob:
+  script:
+    - mvn clean install -Dmaven.test.skip=true
+```
+
+job执行成功
+
+![](img/g06.png)
+
+如果出现以下错误，可能是git or gitlab-runner 的版本问题，或设置问题
+
+```
+fatal: git fetch-pack: expected shallow list
+fatal: The remote end hung up unexpectedly
+```
+
+可以尝试改为 clone 的形式拉代码。
+
+![](img/g07.png)
+
 ## pipeline 
 
 流水线，当ci触发后，便会执行整个ci过程，这个过程称作流水线
