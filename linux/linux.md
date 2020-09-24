@@ -461,6 +461,8 @@ centos7:systemctl   [start,stop,restart,reload,status] 服务名
 
 rpm是redhat packages manager,一种安装包管理器，后被广泛应用
 
+`rpm -ivh` 安装rpm包
+
 `rpm -qa |grep firefox` 查询已安装的rpm
 
 `rpm -e firefox` 删除rpm包
