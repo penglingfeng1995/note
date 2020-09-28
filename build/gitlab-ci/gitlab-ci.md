@@ -71,11 +71,11 @@ shared runner 所有项目都可以使用，但是只有 gitlab 的系统管理�
 
 ## Job
 
-job 是ci的一个最小单元，代表一个任务，任务中至少有一个 script 元素，表示要执行的命令
+job 是ci的一个顶级元素，代表一个任务，任务中至少有一个 script 元素，表示要执行的命令
 
-job 的名称可以使用关键保留字 之外的字，进行自定义。
+job 的名称可以使用关键字 之外的字，进行自定义。
 
-job可以定义多个。
+job可以定义多个。每个任务彼此独立运行。
 
 ```yaml
 helloJob01:
@@ -126,3 +126,12 @@ fatal: The remote end hung up unexpectedly
 
 ![](img/g05.png)
 
+## ci lint
+
+ci文件可以从页面上的 ci lint 按钮进行校验，检查语法是否合规。
+
+![](img/g08.png)
+
+点击validate即可校验，在下方查看校验结果
+
+![](img/g09.png)
