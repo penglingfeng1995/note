@@ -198,6 +198,46 @@ helloJob:
 
 以上配置表示，仅当 提交 merge request 时，且不是分支的代码时触发ci。
 
+## default
+
+default 元素用于设置一些默认参数，所有任务将会使用。
+
+```yaml
+default:
+  before_script:
+    - echo 开始任务
+
+helloJob:
+  script: echo hello1
+
+compileJob:
+  stage: build
+  script: mvn clean install -Dmaven.test.skip=true
+```
+
+以上任务都会执行 default 下的前置脚本。
+
+## tag
+
+tag的主要功能就是指定任务交给特定的runner来执行，有多个runner的情况，比如部署了maven的机器上的runner负责打包，部署了docker的机器负责部署项目
+
+注册runner时，或者后续从runner编辑页面可用设置runner的tag，多个tag使用逗号分割
+
+![](img/g11.png)
+
+此时，该runner已经有了三个tag
+
+![](img/g12.png)
+
+一个有tag的runner，只能接受指定了该tag的job ，找不到对应的 runner，任务将进入pending状态
+
+```yaml
+helloJob:
+  tags:
+    - aaa
+  script: echo hello3
+```
+
 
 
 # ci lint
