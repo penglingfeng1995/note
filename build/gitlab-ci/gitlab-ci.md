@@ -89,10 +89,14 @@ helloJob02:
 
 script 也可以是一个数组，定义多条命令。
 
+script 如果包含特殊符号如 `: > [ ] `等，需要用 单引号或双引号包含命令。
+
 ```yaml
 compileJob:
   script:
+    - echo "开始构建"
     - mvn clean install -Dmaven.test.skip=true
+    - echo "构建完成"
 ```
 
 job执行成功
@@ -126,7 +130,77 @@ fatal: The remote end hung up unexpectedly
 
 ![](img/g05.png)
 
-## ci lint
+## stages
+
+定义阶段，同一阶段的任务将并行执行，成功执行完一个阶段才开始下一阶段。
+
+通过  顶级元素 `stages` 定义，通常为一个数组，阶段的名称可以自定义。
+
+job 通过 stage 子元素 绑定。
+
+```yaml
+stages:
+  - aaaa
+  - bbbb
+
+helloJob:
+  stage: aaaa
+  script: echo hello1
+
+helloJob2:
+  stage: aaaa
+  script: echo hello2
+
+compileJob:
+  stage: bbbb
+  script:
+    - echo "开始构建"
+    - mvn clean install -Dmaven.test.skip=true
+    - echo "构建完成"
+```
+
+ex:
+
+![](img/g10.png)
+
+默认情况:
+
+1， 未定义 stages ,则默认有 build , test ,deploy 三个阶段可用。
+
+2，job 未指定 stage，则默认分配为 test 阶段。
+
+## before，after_script
+
+通过 before_script 和 after_script 定义一个任务前后执行的命令，必须是一个数组。
+
+```yaml
+compileJob:
+  before_script:
+    - echo "开始构建"
+  after_script:
+    - echo "构建完成"
+  script:
+    - mvn clean install -Dmaven.test.skip=true
+```
+
+## only , except 
+
+通过only 指定触发任务的策略，except 排除触发任务的策略。
+
+```yaml
+helloJob:
+  script: echo hello1
+  only:
+    - merge_requests
+  except:
+    - branches
+```
+
+以上配置表示，仅当 提交 merge request 时，且不是分支的代码时触发ci。
+
+
+
+# ci lint
 
 ci文件可以从页面上的 ci lint 按钮进行校验，检查语法是否合规。
 
@@ -135,3 +209,4 @@ ci文件可以从页面上的 ci lint 按钮进行校验，检查语法是否合
 点击validate即可校验，在下方查看校验结果
 
 ![](img/g09.png)
+
