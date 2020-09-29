@@ -273,3 +273,75 @@ SimpleTrigger trigger = TriggerBuilder.newTrigger()
 
 以上代码，设置重复n次，总共会执行 n+1 次任务。
 
+## CronTrigger
+
+CronTrigger 是触发器的一种，通过一个 cron 表达式来定义任务如何执行。
+
+使用 `CronScheduleBuilder` 定义，cron 表达式 是使用 七个子表达式组成，年为可选项 ，最少为六位。
+
+完整cron表达式  为 `秒 分 时 当月天数 月 当周天数 年(可选)`
+
+```java
+CronTrigger trigger = TriggerBuilder.newTrigger()
+    .withIdentity("trigger1", "group1")
+    .withSchedule(CronScheduleBuilder.cronSchedule("0/5 * * * * ?"))
+    .build();
+```
+
+每个字段都有一个有效值， 秒和分钟的值为 0-59  ，时的值为 0-23，当月天数的值为 1-31 
+
+**但是**，这个月份的定义有点坑 
+
+[官方文档](http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/tutorial-lesson-06.html)上的说明是，定义为 0-11 ，或是使用 字符串简写
+
+![](img/q5.png)
+
+而网上的一些杂贴，前一节说 0-11,后一节说 1-12 ，搞得很乱。
+
+而实际使用时，如果把月份设置为 0 ,则会抛出异常，表示月份必须为 1-12
+
+```
+Exception in thread "main" java.lang.RuntimeException: CronExpression '0/5 * * * 0 ?' is invalid.
+	at org.quartz.CronScheduleBuilder.cronSchedule(CronScheduleBuilder.java:111)
+	at com.plf.quartz.App.main(App.java:28)
+Caused by: java.text.ParseException: Month values must be between 1 and 12
+```
+
+设置为当前月，比如现在 九月，设置为 9 或 SEP ，任务刚好是执行的，设为其他则不执行。
+
+查看官方github，确实是个issue，有对应的文档修复pr，但是并没有部署
+
+![](img/q6.png)
+
+**最终**,月份应该使用 1-12 来定义。
+
+当周天数的有效值为 1-7 ，其中 1 为 星期s天 sunday ,2-7接着为 周一到周六 ，当周天数和当天月份不能同时设置，设置了其中一个，另一个需设置为 `?`
+
+年份的有效值就为公历的年份，比如2020 ，作为可选配置，可以不填。
+
+特殊写法：
+
+`-` : 表示从有个值到某个值 ，比如  月份设置为 `MAY-SEP` 或 `5-9`  ，表示 五月到九月都生效。
+
+`*` : 表示每一个，任何。比如，秒字段设置为`*` 表示每秒都会执行。
+
+`,` : 表示集合，比如月份设置为 `SEP,DEC` ，则表示 九月和 十二月生效。还可以与`-`一起使用，比如`MAY-SEP,DEC` 表示五月到九月和十二月生效。
+
+`/` : 表示增量，比如在秒字段设置为 `32/5` 表示从32秒开始执行第一次，隔5秒执行一次，下次执行为37秒，再下次为42秒，依次类推。
+
+`?` : 该符号只能用于 ，当周天数和当月天数，表示 无指定值，这两个字段特殊值只能设置其中一个，不能同时设置，另一个需设置为 `?`
+
+`L` : 可以用于 周天 和 月天 字段，用于月天表示 每月的最后一天，比如 1月31日，非闰年的2月28日。用于周天的话，则表示 7 或 SAT ，表示周六，如果L在一个数字后面表示，每月的最后一个星期几，如6L 或 FRIL ，表示每月最后一个周五。
+
+`W` : 表示工作日
+
+`#` : 表示工作日
+
+# WEB
+
+# 持久化
+
+# spring
+
+# springboot
+
