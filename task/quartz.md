@@ -85,6 +85,37 @@ public static void main(String[] args) {
 
 ![](img/q1.png)
 
+# 配置文件
+
+quartz的通过一个配置文件`quartz.properties`来配置quartz的配置，如果项目运行的类路径根目录没有`quartz.properties`文件的话，则使用默认的配置文件，默认的配置文件在源码的 `org/quartz/quartz.properties`下
+
+如过配置了自定义的配置文件，默认的配置文件将完全失效，所以最好是copy一份过来，基于原有的修改。
+
+默认的配置如下，原本默认properties文件的使用的`:`作为键值分隔符，可以修改`=`方便使用，同样可以读取。
+
+```properties
+# Default Properties file for use by StdSchedulerFactory
+# to create a Quartz Scheduler Instance, if a different
+# properties file is not explicitly specified.
+#
+
+org.quartz.scheduler.instanceName= DefaultQuartzScheduler
+org.quartz.scheduler.rmi.export= false
+org.quartz.scheduler.rmi.proxy= false
+org.quartz.scheduler.wrapJobExecutionInUserTransaction= false
+
+org.quartz.threadPool.class= org.quartz.simpl.SimpleThreadPool
+org.quartz.threadPool.threadCount= 10
+org.quartz.threadPool.threadPriority= 5
+org.quartz.threadPool.threadsInheritContextClassLoaderOfInitializingThread= true
+
+org.quartz.jobStore.misfireThreshold= 60000
+
+org.quartz.jobStore.class= org.quartz.simpl.RAMJobStore
+```
+
+在配置的开头的注释中，可以发现，这些配置用于构造`org.quartz.impl.StdSchedulerFactory`实例，我们所有可配置的字段都可以在这里面找到。
+
 # 传递参数
 
 创建任务详情时设置参数` JobDataMap`,也可以直接设置`JobData`，job 通过 `JobDetail`获取。
@@ -292,7 +323,7 @@ CronTrigger trigger = TriggerBuilder.newTrigger()
 
 **但是**，这个月份的定义有点坑 
 
-[官方文档](http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/tutorial-lesson-06.html)上的说明是，定义为 0-11 ，或是使用 字符串简写
+[官方文档](http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/tutorial-lesson-06.html)上的说明是，定义为 0-11 ，或是使用 字符串简写,如 JAN,FEB等
 
 ![](img/q5.png)
 
@@ -339,9 +370,267 @@ Caused by: java.text.ParseException: Month values must be between 1 and 12
 
 # WEB
 
+想要使 调度器 随web容器一起启动，有两种方式
+
+方式1，在 `web.xml`添加一个监听器，可以随容器初始化调度器
+
+```xml
+<context-param>
+    <param-name>quartz:config-file</param-name>
+    <param-value>quartz.properties</param-value>
+</context-param>
+<context-param>
+    <param-name>quartz:shutdown-on-unload</param-name>
+    <param-value>true</param-value>
+</context-param>
+<context-param>
+    <param-name>quartz:wait-on-shutdown</param-name>
+    <param-value>false</param-value>
+</context-param>
+<context-param>
+    <param-name>quartz:start-scheduler-on-load</param-name>
+    <param-value>true</param-value>
+</context-param>
+<listener>
+    <listener-class>
+        org.quartz.ee.servlet.QuartzInitializerListener
+    </listener-class>
+</listener>
+```
+
+方式2，配置servlet
+
+```xml
+<servlet>
+    <servlet-name>QuartzInitializer</servlet-name>
+    <servlet-class>org.quartz.ee.servlet.QuartzInitializerServlet</servlet-class>
+    <init-param>
+        <param-name>shutdown-on-unload</param-name>
+        <param-value>true</param-value>
+    </init-param>
+    <load-on-startup>2</load-on-startup>
+</servlet>
+
+<servlet-mapping>
+    <servlet-name>QuartzInitializer</servlet-name>
+    <url-pattern>/quartz</url-pattern>
+</servlet-mapping>
+```
+
 # 持久化
 
+默认情况下，任务的信息是以内存的形式，储存在当前进程的内存中，如果服务重启或者关闭，所以的任务信息都会丢失，但是优点是快，想要任务在重启后任能继续执行，就要持久化了。
+
+1，持久化则需要使用数据库，quartz有对应的初始化数据库的sql脚本，找到对应的数据库的脚本，进行初始化。
+
+脚本文件2.3.0之前需要下载官方发布的的distribution包，在`docs/dbTables`目录下，2.3.0及以后，脚本文件在源码中的`org.quartz.impl.jdbcjobstore` 包下，和`java`文件放在一起，用什么版本的quartz就找到对应版本的初始化脚本，不要去网上乱找。
+
+找到对应的脚本，我们这里使用 `tables_mysql_innodb.sql` ，执行脚本，最好单独找个数据库，和业务的数据区分开。
+
+2，修改我们的quartz核心配置文件
+
+替换任务存储类 `JobStore` ，替换掉原来的内存存储，此时要做出一个选择
+
+`JobStoreCMT` : 允许quartz与程序中的其他事务绑定。
+
+`JobStoreTX`：不与其他事务绑定，常用选择。
+
+```properties
+#org.quartz.jobStore.class= org.quartz.simpl.RAMJobStore
+
+#org.quartz.jobStore.class= org.quartz.impl.jdbcjobstore.JobStoreCMT
+org.quartz.jobStore.class=org.quartz.impl.jdbcjobstore.JobStoreTX
+```
+
+然后配置使用的数据库方言，表明使用那种数据库，通常最多使用标准方言`StdJDBCDelegate`，如`mysql`
+
+```properties
+org.quartz.jobStore.driverDelegateClass = org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+```
+
+配置表名前缀，不配置的话，使用默认值`QRTZ_`
+
+```properties
+org.quartz.jobStore.tablePrefix = QRTZ_
+```
+
+配置数据源，自定义一个数据源的名称，数据库的连接配置，前缀使用`org.quartz.impl.StdSchedulerFactory#PROP_DATASOURCE_PREFIX` 字段，中间为数据源名称，后缀为连接的各个配置如`org.quartz.impl.StdSchedulerFactory#PROP_DATASOURCE_DRIVER`
+
+```properties
+org.quartz.jobStore.dataSource = myDS
+
+org.quartz.dataSource.myDS.driver = com.mysql.cj.jdbc.Driver
+org.quartz.dataSource.myDS.URL = jdbc:mysql://192.168.24.130:3306/qrtz
+org.quartz.dataSource.myDS.user = root
+org.quartz.dataSource.myDS.password = 123456
+```
+
+3，基本配置已完成，此时启动项目，任务会被持久化到数据库中，再次重启后会发现，同样的任务（同一个identify）无法再次被加载，旧的任务从上次执行的地方继续执行
+
+```java
+org.quartz.ObjectAlreadyExistsException: Unable to store Job : 'group1.job1', because one already exists with this identification.
+	at org.quartz.impl.jdbcjobstore.JobStoreSupport.storeJob(JobStoreSupport.java:1113)
+	at org.quartz.impl.jdbcjobstore.JobStoreSupport$2.executeVoid(JobStoreSupport.java:1067)
+	at 
+2020-10-16 11:38:58.677  INFO --- [eduler_Worker-1] com.plf.quartz.job.HelloJob              : hello,张三,50,北京 
+```
+
+此时如果想对任务进行操作，通过scheduler实例进行
+
+```java
+// 删除任务
+scheduler.deleteJob(new JobKey("job1","group1"));
+// 重启任务
+scheduler.resumeJob(new JobKey("job1","group1"));
+// 暂停任务
+scheduler.pauseJob(new JobKey("job1","group1"));
+```
+
+默认情况下 , `jobData` 的数据会存储在`QRTZ_JOB_DETAILS` 表的`JOB_DATA`字段以BLOB的形式存储，可以通过以下配置，修改为字符串的形式，但是修改之后 `jobData`只能设置字符串的属性，其实不方便。
+
+```properties
+org.quartz.jobStore.useProperties=true
+```
+
+默认情况会使用 c3p0 作为连接池 ，可以修改为 hikaricp
+
+```properties
+org.quartz.dataSource.myDS.provider=hikaricp
+```
+
 # spring
+
+spring 提供了整合 quartz 的方案 ，详见[spring文档](https://docs.spring.io/spring-framework/docs/5.2.4.RELEASE/spring-framework-reference/integration.html#scheduling-quartz) 
+
+需要的依赖
+
+```xml
+<!--spring-quartz整合包-->
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-context-support</artifactId>
+    <version>5.2.8.RELEASE</version>
+</dependency>
+<!--spring核心-->
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-context</artifactId>
+    <version>5.2.8.RELEASE</version>
+</dependency>
+<!--quartz核心-->
+<dependency>
+    <groupId>org.quartz-scheduler</groupId>
+    <artifactId>quartz</artifactId>
+    <version>2.3.0</version>
+</dependency>
+```
+
+整合spring之后，调度器随spring容器一起启动，依旧是三步配置，配置 `JobDetail` ，`Trigger` ,`Scheduler` ，只是spring都封装成了`FactoryBean`模式
+
+```xml
+<!--jobDetail-->
+<bean id="jobDetail" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
+    <property name="group" value="group1"/>
+    <property name="name" value="job1"/>
+    <property name="jobClass" value="com.plf.qrtzsp.job.HelloJob"/>
+    <property name="jobDataAsMap">
+        <map>
+            <entry key="username" value="张三"/>
+        </map>
+    </property>
+</bean>
+<!--trigger-->
+<bean id="cronTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+    <property name="group" value="group1"/>
+    <property name="name" value="trigger1"/>
+    <property name="cronExpression" value="0/3 * * * * ?"/>
+    <property name="jobDetail" ref="jobDetail"/>
+</bean>
+<!--scheduler-->
+<bean id="scheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+    <property name="triggers">
+        <list>
+            <ref bean="cronTrigger"/>
+        </list>
+    </property>
+</bean>
+```
+
+任务类还是之前任务类，不过此时会丢失一个特性，就是只能从`JobExecutionContext`获取任务参数，不再自动注入属性
+
+```java
+@Slf4j
+@Data
+public class HelloJob implements Job {
+    @Override
+    public void execute(JobExecutionContext context) throws JobExecutionException {
+        JobDataMap jobDataMap = context.getJobDetail().getJobDataMap();
+        String username = jobDataMap.getString("username");
+        log.info("hello,"+username);
+    }
+}
+```
+
+此时调度器随容器启动
+
+```java
+ApplicationContext context=new ClassPathXmlApplicationContext("spring.xml");
+```
+
+## 持久化
+
+方式1，使用`quartz.properties`
+
+只需要依赖 `spring-tx`
+
+```xml
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-tx</artifactId>
+    <version>5.2.8.RELEASE</version>
+</dependency>
+```
+
+和之前的持久化一样，需要配置`quartz.properties`
+
+调度器选择，这里必须指定下配置文件路径
+
+```xml
+<bean id="scheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+	<!--....-->
+    <property name="configLocation" value="classpath:quartz.properties"/>
+</bean>
+```
+
+方式2，spring注入数据源到`SchedulerFactoryBean` ，无需配置`quartz.properties`
+
+除了 `spring-tx`还需依赖 `spring-jdbc`
+
+```xml
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-jdbc</artifactId>
+    <version>5.2.8.RELEASE</version>
+</dependency>
+```
+
+注入`dataSource`到 `scheduler`
+
+```xml
+<bean id="scheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+    <!--省略-->
+    <property name="dataSource" ref="dataSource"/>
+</bean>
+
+<bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource">
+    <property name="jdbcUrl" value="jdbc:mysql://192.168.24.130:3306/qrtz"/>
+    <property name="username" value="root"/>
+    <property name="password" value="123456"/>
+    <property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>
+</bean>
+```
+
+此时会自动使用`JobStoreCMT` 模式，使用`org.springframework.scheduling.quartz.LocalDataSourceJobStore`
 
 # springboot
 
