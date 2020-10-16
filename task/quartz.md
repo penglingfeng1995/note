@@ -571,6 +571,59 @@ public class HelloJob implements Job {
 }
 ```
 
+如果需要使用自动注入则需要继承`QuartzJobBean`，而不是实现 `Job`
+
+```java
+@Slf4j
+@Data
+public class HelloJob extends QuartzJobBean {
+
+    private String username;
+
+    @Override
+    protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
+        log.info("hello,usernameF:{}",username);
+    }
+}
+```
+
+这种方式也可以注入其他bean到`jobDataMap`
+
+```xml
+<bean id="jobDetail" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
+    <property name="group" value="group1"/>
+    <property name="name" value="job1"/>
+    <property name="jobClass" value="com.plf.qrtzsp.job.HelloJob"/>
+    <property name="jobDataAsMap">
+        <map>
+            <entry key="username" value="张三"/>
+            <entry key="studentService"  value-ref="studentService"/>
+        </map>
+    </property>
+</bean>
+
+<bean id="studentService" class="com.plf.qrtzsp.service.StudentService"/>
+```
+
+job类中使用bean
+
+```java
+@Slf4j
+@Data
+public class HelloJob extends QuartzJobBean {
+
+    private StudentService studentService;
+
+    private String username;
+
+    @Override
+    protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
+        log.info("hello,username:{}",username);
+        studentService.study();
+    }
+}
+```
+
 此时调度器随容器启动
 
 ```java
