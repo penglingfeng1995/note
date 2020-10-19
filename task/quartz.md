@@ -685,5 +685,224 @@ ApplicationContext context=new ClassPathXmlApplicationContext("spring.xml");
 
 此时会自动使用`JobStoreCMT` 模式，使用`org.springframework.scheduling.quartz.LocalDataSourceJobStore`
 
+## job注入bean
+
+持久化后，会发现，bean不能持久化，所以不能用在jobDataMap中，这时需要使用spring提供的bean注入
+
+需要注入bean的job，把所有的需要注入的bean，设置作为一个构造方法
+
+```java
+@Slf4j
+@Data
+@NoArgsConstructor
+public class HelloJob extends QuartzJobBean {
+
+    private StudentService studentService;
+
+    private String username;
+
+    public HelloJob(StudentService studentService) {
+        this.studentService = studentService;
+    }
+
+    @Override
+    protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
+        JobDataMap jobDataMap = context.getJobDetail().getJobDataMap();
+        String username1 = jobDataMap.getString("username");
+        log.info("hello,usernameF:{},usernameP:{}",username,username1);
+        log.info("service:{}",studentService);
+        studentService.study();
+    }
+}
+```
+
+并设置 `SpringBeanJobFactory` 到 `SchedulerFactoryBean `中，该任务工厂可以把匹配的bean注入job的实例中，还有properties
+
+```xml
+<bean id="scheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+	<!--省略-->
+    <property name="jobFactory">
+        <bean class="org.springframework.scheduling.quartz.SpringBeanJobFactory"/>
+    </property>
+</bean>
+```
+
+至于为什么只能支持构造注入，查看源码发现，是通过`AutowireCapableBeanFactory.AUTOWIRE_CONSTRUCTOR`策略决定的。
+
+```java
+@Override
+protected Object createJobInstance(TriggerFiredBundle bundle) throws Exception {
+    Object job = (this.applicationContext != null ?
+                  this.applicationContext.getAutowireCapableBeanFactory().createBean(
+                      bundle.getJobDetail().getJobClass(), AutowireCapableBeanFactory.AUTOWIRE_CONSTRUCTOR, false) :
+                  super.createJobInstance(bundle));
+```
+
 # springboot
+
+springboot2.0集成quartz
+
+引入依赖，引入该starter之后，会自动实例化 Scheduler 对象，加入到容器中。并能够自动加载，JobDetail 和 Trigger的bean。
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-quartz</artifactId>
+</dependency>
+```
+
+定义job类，实现`QuartzJobBean` ，sb2.0之后可以直接使用`@Autowired`注入bean
+
+```java
+@Data
+public class HelloJob extends QuartzJobBean {
+
+    @Autowired
+    private HelloService helloService;
+
+    private String name;
+
+    @Override
+    protected void executeInternal(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+        helloService.hello(name);
+    }
+}
+```
+
+其中`HelloService` 注册为一个bean。
+
+```java
+@Slf4j
+@Service
+public class HelloService {
+    public void hello(String name){
+      log.info("hello,{}",name);
+    }
+}
+```
+
+1，固定任务
+
+把JobDetail 和 Trigger 注册为 bean，即可被Scheduler发现，并自动调度。
+
+```java
+@Slf4j
+@Configuration
+public class QuartzConfig {
+
+    // 需要调用下storeDurably()方法，让任务暂存
+    @Bean
+    public JobDetail helloJobDetail() {
+        JobDataMap jobDataMap = new JobDataMap();
+        jobDataMap.put("name", "张三");
+        return JobBuilder
+                .newJob(HelloJob.class)
+                .usingJobData(jobDataMap)
+                .storeDurably()
+                .build();
+    }
+
+    @Bean
+    public Trigger helloTrigger(JobDetail jobDetail) {
+        CronScheduleBuilder cronScheduleBuilder = CronScheduleBuilder.cronSchedule("0/3 * * * * ?");
+        return TriggerBuilder
+                .newTrigger()
+                .withSchedule(cronScheduleBuilder)
+                .forJob(jobDetail)
+                .build();
+    }
+}
+```
+
+2,动态任务
+
+在某个bean中，注入Scheduler的bean，手动创建任务并调度，也是quartz的主要功能，固定的任务用spring-task即可，quartz可以动态创建任务，比如页面上点击下，在后台就创建了一个任务，动态的选择执行的周期，而不是固定的配置。
+
+```java
+@Service
+public class StartService implements InitializingBean {
+
+    @Autowired
+    private Scheduler scheduler;
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        JobDataMap jobDataMap = new JobDataMap();
+        jobDataMap.put("name","中山");
+        JobDetail jobDetail = JobBuilder
+                .newJob(HelloJob.class)
+                .usingJobData(jobDataMap)
+                .build();
+
+        Trigger trigger = TriggerBuilder
+                .newTrigger()
+                .withSchedule(CronScheduleBuilder.cronSchedule("0/5 * * * * ?"))
+                .build();
+
+        try {
+            scheduler.scheduleJob(jobDetail,trigger);
+        } catch (SchedulerException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+## 持久化
+
+springboot这边持久化会方便些，主要定义三个属性，
+
+`spring.quartz.job-store-type` 可以选择 memory 或者 jdbc，当选择jdbc时，同时需要有可用的 DataSource 的bean，才能生效。
+
+`spring.quartz.jdbc.initialize-schema` 初始化数据库的模式，always即每次都会初始化数据库，就是会把初始化脚本执行一遍，每次都执行，还有的选项是 embedded ，只有在使用内嵌数据库才初始化，第三个选项是never，不初始化数据库。
+
+`spring.quartz.jdbc.schema` 初始化的数据库脚本，quartz2.3.0之前的版本需要把脚本复制进来，之后的版本直接在jar包路径内。
+
+```yaml
+spring:
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: always
+      schema: classpath:org/quartz/impl/jdbcjobstore/tables_mysql_innodb.sql
+  datasource:
+    username: root
+    password: 123456
+    url: jdbc:mysql://192.168.24.130:3306/qrtz
+    driver-class-name: com.mysql.cj.jdbc.Driver
+```
+
+然后定义一个 数据源 DataSource 
+
+为了能让DataSource产生bean，和正常连接数据库，还需要导入依赖
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-jdbc</artifactId>
+</dependency>
+
+<dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+    <scope>runtime</scope>
+</dependency>
+```
+
+此时持久化配置完成。
+
+如果想让业务的数据源和 quartz的数据源分开，可以单独定义一个DataSource，并使用`@QuartzDataSource`标注这个bean
+
+```java
+@Bean
+@QuartzDataSource
+public DataSource quartzDataSource(){
+    HikariDataSource dataSource = new HikariDataSource();
+    dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
+    dataSource.setJdbcUrl("jdbc:mysql://192.168.24.130:3306/qrtz");
+    dataSource.setUsername("root");
+    dataSource.setPassword("123456");
+    return dataSource;
+}
+```
 
