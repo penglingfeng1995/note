@@ -906,3 +906,44 @@ public DataSource quartzDataSource(){
 }
 ```
 
+## 集群
+
+集群下， 多个sheduler实例共享一个qrtz数据库，一个任务持久化一次，保证多个实例下只执行一次，多个scheduler进行负载分发任务
+
+修改配置, `application.yml` 中，可以通过 `spring.quartz.properties` 指定一个map，代替原来的`quartz.propreties`
+
+这里设置参数 `org.quartz.jobStore.isClustered` 为true ，即可开启集群模式，还需要指定下`org.quartz.scheduler.instanceName` 实例名称，多个节点公用同一个schduler实例名称，代表一个集群。每个节点需要设置一个`org.quartz.scheduler.instanceId` ，不同的节点需要不同的id，设置为`AUTO` 自动生成id
+
+```yaml
+spring:
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: always
+      schema: classpath:org/quartz/impl/jdbcjobstore/tables_mysql_innodb.sql
+    properties:
+      org:
+        quartz:
+          jobStore:
+            isClustered: true
+          scheduler:
+            instanceId: AUTO
+            instanceName: testQuartz1
+```
+
+启动项目,日志 得到 `which supports persistence. and is clustered.`  支持持久化且是集群模式，说明正常，可以顺便看下实例名称和id
+
+```java
+2020-10-20 20:43:48.127  INFO 2304 --- [           main] org.quartz.core.QuartzScheduler          : Quartz Scheduler v.2.3.2 created.
+2020-10-20 20:43:48.132  INFO 2304 --- [           main] o.s.s.quartz.LocalDataSourceJobStore     : Using db table-based data access locking (synchronization).
+2020-10-20 20:43:48.133  INFO 2304 --- [           main] o.s.s.quartz.LocalDataSourceJobStore     : JobStoreCMT initialized.
+2020-10-20 20:43:48.133  INFO 2304 --- [           main] org.quartz.core.QuartzScheduler          : Scheduler meta-data: Quartz Scheduler (v2.3.2) 'testQuartz1' with instanceId 'xxx31211603197828121'
+  Scheduler class: 'org.quartz.core.QuartzScheduler' - running locally.
+  NOT STARTED.
+  Currently in standby mode.
+  Number of jobs executed: 0
+  Using thread pool 'org.quartz.simpl.SimpleThreadPool' - with 10 threads.
+  Using job-store 'org.springframework.scheduling.quartz.LocalDataSourceJobStore' - which supports persistence. and is clustered.
+```
+
+当启动第二个节点时，实例会对节点进行任务分发。
