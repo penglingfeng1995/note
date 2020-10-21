@@ -391,6 +391,10 @@ Caused by: java.text.ParseException: Month values must be between 1 and 12
     <param-name>quartz:start-scheduler-on-load</param-name>
     <param-value>true</param-value>
 </context-param>
+<context-param>
+        <param-name>quartz:scheduler-context-servlet-context-key</param-name>
+        <param-value>quzrtzScheduler</param-value>
+</context-param>
 <listener>
     <listener-class>
         org.quartz.ee.servlet.QuartzInitializerListener
@@ -416,6 +420,8 @@ Caused by: java.text.ParseException: Month values must be between 1 and 12
     <url-pattern>/quartz</url-pattern>
 </servlet-mapping>
 ```
+
+两种方法都可以让调度器Scheduler随servlet容器启动,并可以通过设置的`quartz:scheduler-context-servlet-context-key` 从 servletContext 获取该实例
 
 # 持久化
 
@@ -497,6 +503,44 @@ org.quartz.jobStore.useProperties=true
 ```properties
 org.quartz.dataSource.myDS.provider=hikaricp
 ```
+
+# 集群
+
+[quartz集群](http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/tutorial-lesson-11.html) 可以满足多节点执行任务，当集群环境下，只希望任务在一个节点执行，防止任务被多个节点重复执行，通过统一的调度管理，进行任务分发，实现负载均衡，当其中一个节点挂掉后，其他节点可以顶替继续执行任务，保证高可用，quartz的集群是基于数据的，不通节点不会直接感知其他节点，所以集群配置是要基于quartz持久化。
+
+修改配置文件 ，设置 `org.quartz.jobStore.isClustered` 为 `true` 开启集群, 不通的节点，配置应该一致，但是允许不同的节点的修改线程池大小，及 每个集群节点必须指定唯一的集群实例id (instanceId) ，该值设置为 AUTO ，可以自动生成
+
+```properties
+# 开启集群
+org.quartz.jobStore.isClustered=true
+# 自动生成实例id
+org.quartz.scheduler.instanceId=AUTO
+```
+
+启动一个实例时，日志显示`which supports persistence. and is clustered.` 支持持久化且是集群的，表示配置成功
+
+```java
+2020-10-21 17:12:28.573  INFO --- [           main] org.quartz.impl.jdbcjobstore.JobStoreTX  : Using db table-based data access locking (synchronization). 
+2020-10-21 17:12:28.576  INFO --- [           main] org.quartz.impl.jdbcjobstore.JobStoreTX  : JobStoreTX initialized. 
+2020-10-21 17:12:28.581  INFO --- [           main] org.quartz.core.QuartzScheduler          : Scheduler meta-data: Quartz Scheduler (v2.3.0) 'DefaultQuartzScheduler' with instanceId 'xxxx31211603271548542'
+  Scheduler class: 'org.quartz.core.QuartzScheduler' - running locally.
+  NOT STARTED.
+  Currently in standby mode.
+  Number of jobs executed: 0
+  Using thread pool 'org.quartz.simpl.SimpleThreadPool' - with 10 threads.
+  Using job-store 'org.quartz.impl.jdbcjobstore.JobStoreTX' - which supports persistence. and is clustered.
+```
+
+启动多个实例，关掉其中一个正在执行的实例，其他实例会察觉到，并继续支持任务。
+
+```java
+2020-10-21 17:39:30.176  INFO --- [_ClusterManager] org.quartz.impl.jdbcjobstore.JobStoreTX  : ClusterManager: detected 1 failed or restarted instances. 
+2020-10-21 17:39:30.176  INFO --- [_ClusterManager] org.quartz.impl.jdbcjobstore.JobStoreTX  : ClusterManager: Scanning for instance "xxx31211603273091117"'s failed in-progress jobs. 
+2020-10-21 17:39:30.182  INFO --- [_ClusterManager] org.quartz.impl.jdbcjobstore.JobStoreTX  : ClusterManager: ......Freed 1 acquired trigger(s). 
+2020-10-21 17:39:30.234  INFO --- [eduler_Worker-1] com.plf.quartz.job.HelloJob              : hello,张三,12,北京 
+```
+
+
 
 # spring
 
@@ -684,6 +728,26 @@ ApplicationContext context=new ClassPathXmlApplicationContext("spring.xml");
 ```
 
 此时会自动使用`JobStoreCMT` 模式，使用`org.springframework.scheduling.quartz.LocalDataSourceJobStore`
+
+## 集群
+
+在sprign中，可以在SchedulerFactoryBean的配置中，使用`quartzProperties` 属性，代替`quartz.properties`
+
+同样是开启集群，自动生成实例id
+
+```xml
+<bean id="scheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+	<!--以上省略-->
+    <property name="quartzProperties">
+        <props>
+            <prop key="org.quartz.scheduler.instanceId">AUTO</prop>
+            <prop key="org.quartz.jobStore.isClustered">true</prop>
+        </props>
+    </property>
+</bean>
+```
+
+
 
 ## job注入bean
 
@@ -912,7 +976,7 @@ public DataSource quartzDataSource(){
 
 修改配置, `application.yml` 中，可以通过 `spring.quartz.properties` 指定一个map，代替原来的`quartz.propreties`
 
-这里设置参数 `org.quartz.jobStore.isClustered` 为true ，即可开启集群模式，还需要指定下`org.quartz.scheduler.instanceName` 实例名称，多个节点公用同一个schduler实例名称，代表一个集群。每个节点需要设置一个`org.quartz.scheduler.instanceId` ，不同的节点需要不同的id，设置为`AUTO` 自动生成id
+这里设置参数 `org.quartz.jobStore.isClustered` 为true ，即可开启集群模式，还需要指定下`org.quartz.scheduler.instanceName` 实例名称，多个节点公用同一个schduler实例名称，代表一个集群。每个节点需要设置一个`org.quartz.scheduler.instanceId` ，不同的节点需要不同的id，设置为`AUTO` 自动生成i
 
 ```yaml
 spring:
@@ -929,21 +993,6 @@ spring:
           scheduler:
             instanceId: AUTO
             instanceName: testQuartz1
-```
-
-启动项目,日志 得到 `which supports persistence. and is clustered.`  支持持久化且是集群模式，说明正常，可以顺便看下实例名称和id
-
-```java
-2020-10-20 20:43:48.127  INFO 2304 --- [           main] org.quartz.core.QuartzScheduler          : Quartz Scheduler v.2.3.2 created.
-2020-10-20 20:43:48.132  INFO 2304 --- [           main] o.s.s.quartz.LocalDataSourceJobStore     : Using db table-based data access locking (synchronization).
-2020-10-20 20:43:48.133  INFO 2304 --- [           main] o.s.s.quartz.LocalDataSourceJobStore     : JobStoreCMT initialized.
-2020-10-20 20:43:48.133  INFO 2304 --- [           main] org.quartz.core.QuartzScheduler          : Scheduler meta-data: Quartz Scheduler (v2.3.2) 'testQuartz1' with instanceId 'xxx31211603197828121'
-  Scheduler class: 'org.quartz.core.QuartzScheduler' - running locally.
-  NOT STARTED.
-  Currently in standby mode.
-  Number of jobs executed: 0
-  Using thread pool 'org.quartz.simpl.SimpleThreadPool' - with 10 threads.
-  Using job-store 'org.springframework.scheduling.quartz.LocalDataSourceJobStore' - which supports persistence. and is clustered.
 ```
 
 当启动第二个节点时，实例会对节点进行任务分发。
