@@ -391,10 +391,6 @@ Caused by: java.text.ParseException: Month values must be between 1 and 12
     <param-name>quartz:start-scheduler-on-load</param-name>
     <param-value>true</param-value>
 </context-param>
-<context-param>
-        <param-name>quartz:scheduler-context-servlet-context-key</param-name>
-        <param-value>quzrtzScheduler</param-value>
-</context-param>
 <listener>
     <listener-class>
         org.quartz.ee.servlet.QuartzInitializerListener
@@ -421,7 +417,60 @@ Caused by: java.text.ParseException: Month values must be between 1 and 12
 </servlet-mapping>
 ```
 
-两种方法都可以让调度器Scheduler随servlet容器启动,并可以通过设置的`quartz:scheduler-context-servlet-context-key` 从 servletContext 获取该实例
+两种方法都可以让调度器Scheduler随servlet容器启动,并可以通过一个key从`ServletContext`中来获取到`StdSchedulerFactory`的实例
+
+在 `servlet`中获取 `scheduler` 实例 
+
+```java
+@Override
+protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    ServletContext servletContext = req.getServletContext();
+    StdSchedulerFactory quartzFactory = (StdSchedulerFactory) servletContext.getAttribute(QuartzInitializerListener.QUARTZ_FACTORY_KEY);
+    try {
+        Scheduler scheduler = quartzFactory.getScheduler();
+    } catch (SchedulerException e) {
+        e.printStackTrace();
+    }
+}
+```
+
+这个key默认为 `QuartzInitializerListener.QUARTZ_FACTORY_KEY` 也可以通过以下配置去自定义 key
+
+```xml
+<context-param>
+    <param-name>quartz:servlet-context-factory-key</param-name>
+    <param-value>quartzFactory</param-value>
+</context-param>
+```
+
+如果想在 Job 中获取到 `ServletContext` ，需要指定一个配置key
+
+```xml
+<context-param>
+    <param-name>quartz:scheduler-context-servlet-context-key</param-name>
+    <param-value>servletContext</param-value>
+</context-param>
+```
+
+然后Job中通过配置的key从`schedulerContext`获取到 `servletContext`
+
+```java
+@Slf4j
+@Data
+public class HelloJob implements Job {
+    @Override
+    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+        try {
+            SchedulerContext schedulerContext = jobExecutionContext.getScheduler().getContext();
+            ServletContext servletContext = (ServletContext) schedulerContext.get("servletContext");
+            String contextPath = servletContext.getContextPath();
+            log.info("hello,{}",contextPath);
+        } catch (SchedulerException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
 
 # 持久化
 
