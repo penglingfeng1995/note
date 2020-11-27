@@ -244,3 +244,17 @@ xml中可以用#{对象.属性}的方式取值
 </select>
 ```
 
+## # 与  $ 区别
+
+#{} ： 会使用 PreparedStatement 进行预编译，该占位符替换为 `?` ，使用 PreparedStatement 进行赋值，更加安全，但是只能设置参数，比如有的需要传表名，或者 `DESC` 等关键字无法使用。也不能在`"#{}"` 字符串中使用
+
+${} ： 会使用字符串替换，灵活度高，但是存在sql注入风险
+
+## 指定type
+
+使用mybatis占位符进行传值的时候，如果一个值允许为null，此时mybatis是不知道这个null值对应的jdbc类型，需要指定jdbc类型，详见`PreparedStatement.setNull(paramIndex,sqlType)`
+
+```
+#{userId,jdbcType=VARCHAR}
+```
+
