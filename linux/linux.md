@@ -441,7 +441,9 @@ sudo vi /etc/hosts
 sudo /etc/init.d/network restart
 ```
 
+`ping ip`    : 检测一个网络是否通
 
+`telnet ip port` :检测一个主机的端口是否可用
 
 ### 进程
 
