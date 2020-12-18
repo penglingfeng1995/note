@@ -16,6 +16,13 @@
 
 4,cmd中运行 `ipconfig /flushdns` ,刷新dns
 
+## linux
+
+```bash
+firewall-cmd --zone=public --add-port=80/tcp --permanent
+firewall-cmd --reload
+```
+
 # markdown 语法
 
 后缀名为md，类似于html，是一种标记语言
@@ -40,6 +47,21 @@
 var a = 1;
 ​```
 ```
+
+## 列表
+
+无序列表，可以使用 `*`，`+` ，`-` 三种符号
+
+```markdown
+* item1
++ item2
+- item3
+```
+
+* item1
++ item2
+
+- item3
 
 ## 超链接
 
@@ -149,13 +171,4 @@ C--> |a=2| E[不够]
 - [ ] 吃饭
 
 - [x] 睡觉
-
-# linux
-
-```bash
-firewall-cmd --zone=public --add-port=80/tcp --permanent
-firewall-cmd --reload
-```
-
-
 
