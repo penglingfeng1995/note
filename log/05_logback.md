@@ -220,3 +220,46 @@ TimeBasedRollingPolicy 会安装配置的文件格式，按照时间滚动触发
 
 `%-40.40c{40}`  第一个`-40`表示最小长度不够使用空格填充，前面带`-`表示左对齐，第二个`.40` 表示最大长度超过会被截断，c 为logger名称，`{40}` 为缩写logger名称使其小于指定长度，但是类名始终都会全显示，包名至少一个字符
 
+# MDC
+
+通常在我们的web系统中，都是多线程的，不同线程的日志会交错打印在一起
+
+![](img/5.png)
+
+可以根据线程名称判断，但是线程数量本身有限，简易的做法是从请求进入后设置一个唯一的key来标识这次请求，每条日志都打印这个key，但是参数传递等问题不优雅。
+
+MDC 全称 Mapped Diagnostic Context ，映射诊断环境，类似于一个map，用户可以把相关信息都放入这里面，MDC是基于线程隔离的，子线程默认会继承父线程的MDC。
+
+常见场景，追踪一个请求
+
+进入请求的是，在MDC中设置一个id，来标识这个请求
+
+```java
+@GetMapping("hello")
+public String hello(){
+    String requestId = UUID.randomUUID().toString().replace("-", "");
+    MDC.put("requestId", requestId);
+    log.info("进入请求");
+    return helloService.hello("张三");
+}
+```
+
+在后续的该线程下的所有调用都会有有这个参数
+
+使用 `%X{}`打印这个值，如 `%X{requestId}`
+
+```xml
+<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+        <pattern>%d %5p --- [%X{requestId}] %-40.40c{40} : %m %n</pattern>
+    </encoder>
+</appender>
+```
+
+在后续的日志中，可以使用这个唯一的请求来标识这个请求
+
+![](img/6.png)
+
+在查看日志的时候 ，直接 grep 这个 唯一的标识id，就可以知道整个http请求的调用情况。
+
+更优雅的做法是在filter或者 interceptor 实现，还可以打印更多的参数，如userId，url等
