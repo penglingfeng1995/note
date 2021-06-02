@@ -18,12 +18,32 @@ import org.slf4j.LoggerFactory;
 
 public class Slf4jTest {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Slf4jTest.class);
+    private static final Logger log = LoggerFactory.getLogger(Slf4jTest.class);
 
     @Test
     public void test1(){
-        LOG.info("slf4j测试");
-        LOG.error("异常",new Exception("slf4j---"));
+        log.info("slf4j测试");
+        // 带参数打印，使用占位符{}，按下标填充，可以减少字符串提前拼接，提高性能
+        log.info("需要添加的数量={},需要减少的数量={}", 10, 20);
+        // 打印异常信息
+        log.error("执行异常",new Exception("slf4j---"));
+        // 打印参数及异常，需要把异常对象作为最后一个参数
+        log.error("密码错误，userId={},pwd={}", 123, "abc", new Exception("密码不匹配"));
+    }
+}
+```
+
+可以使用` lombok` 的注解，可以直接在类中使用 log 实例。
+
+```java
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class LogTest {
+
+    @Test
+    void testLog(){
+      log.info("节日快乐");
     }
 }
 ```
