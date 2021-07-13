@@ -82,5 +82,5 @@ public class Student {
 
 列宽建议使用拉到合适的宽度，记录下来，挨个设置
 
-![](ee1.jpg)
+![](img/ee1.jpg)
 
