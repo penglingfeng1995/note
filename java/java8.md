@@ -254,9 +254,9 @@ Process finished with exit code 0
 Stream<T> distinct();
 ```
 
-###切片
+### 切片
 
-####limit
+#### limit
 
 截断，限制流中对象的数量，在管道操作中的位置会影响到结果
 
@@ -438,6 +438,17 @@ Optional<T> max(Comparator<? super T> comparator);
 #### min
 
 同上
+
+### 收集
+
+快速转map
+
+```java
+List<Student> list = new ArrayList<>();
+Map<String, Student> collect = list.stream().collect(Collectors.toMap(Student::getName, Function.identity(), (e1, e2) -> e1));
+```
+
+
 
 #  时间
 
