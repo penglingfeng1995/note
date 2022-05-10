@@ -46,3 +46,15 @@ public class Knife4jConfig {
 
 ![](img/kn1.jpg)
 
+# 配置
+
+```yml
+knife4j:
+  enable: true # 必开，开启增强模式，能够使用knife4j更多功能，如增加鉴权
+  production: false # 是否是生产环境，设为true，则无法查看接口文档
+  basic: 
+    enable: true # 开启鉴权，需要输入账号密码才能访问接口文档
+    username: admin
+    password: 123
+```
+
