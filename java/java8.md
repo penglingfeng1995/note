@@ -452,6 +452,43 @@ Map<String, Student> collect = list.stream().collect(Collectors.toMap(Student::g
 
 #  时间
 
+由于传统的时间api ， java.util.Date 用法太过抽象，比如`getYear()` 拿到是从1900 年到当前的年数，比如2022年拿到的值为 122 ，`getMonth()` 拿月份，却是按照下标来从0开始算，值为 0-11，5月拿到的是 4 ，并且不好对时间进行加减，非常不好用，方法已被标记为废弃。
+
+java8新增了时间api ， 为 java.time 包
+
+```java
+import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+
+// 获取当前日期时间
+LocalDateTime localDateTime = LocalDateTime.now();
+// 获取当前日期
+LocalDate localDate = LocalDate.now();
+// 获取当前时间
+LocalTime localTime = LocalTime.now();
+// 获取指定时间 , 2022-5-1 13:14:33
+LocalDateTime of = LocalDateTime.of(2022, 5, 1, 13, 14, 33);
+
+// 获取当前时间，默认会拿到操作系统的时区，但是某些操作系统比如服务器的linux，装系统的时候时区没设置，可能会有偏差
+// 可以通过 ZoneId 设置时区
+ZoneId zoneId = ZoneId.of("Asia/Shanghai");
+LocalDateTime now = LocalDateTime.now(zoneId);
+
+// 可以调用方法对时间进行加减，计算明天，上周等
+LocalDateTime tomorrow = now.plusDays(1);
+LocalDateTime lastWeek = now.minusWeeks(1);
+
+// 比较两个时间的先后
+boolean after = tomorrow.isAfter(lastWeek);
+
+// 格式化
+DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+String format = dateTimeFormatter.format(localDateTime);
+```
+
 # Optional
 
 
