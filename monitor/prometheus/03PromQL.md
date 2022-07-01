@@ -76,3 +76,7 @@ prometheus_http_requests_total{} offset 10m
 sum(prometheus_http_requests_total{code='200'})
 ```
 
+
+
+# rule配置
+
