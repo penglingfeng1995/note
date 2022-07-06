@@ -10,10 +10,12 @@ kafka https://github.com/danielqsj/kafka_exporter
 
 数据库
 mysql https://github.com/prometheus/mysqld_exporter
-sqlserver https://github.com/awaragi/prometheus-mssql-exporter
+sqlserver https://github.com/awaragi/prometheus-mssql-exporter 
+(只支持2017,2019[DEP0123] DeprecationWarning: Setting the TLS ServerName to an IP address is not permitted by RFC 6066. This will be ignored in a future version.)
 mongodb https://github.com/dcu/mongodb_exporter
 elasticsearch https://github.com/prometheus-community/elasticsearch_exporter
 influxdb https://github.com/prometheus/influxdb_exporter
+通用sql：https://github.com/free/sql_exporter
 
 进程服务
 jvm https://github.com/prometheus/jmx_exporter
@@ -130,6 +132,8 @@ inode使用占比：(1-sum by (device,instance)(node_filesystem_avail_bytes) / s
 
 默认情况会读取当前目录下的 textfile_inputs 目录下的 .prom 文件，作为自定义指标，每行结尾要有个换行 `\n`
 
+如果没配客户端总是会报错提示没读到文件。
+
 ```
 my_metric 123
 
@@ -153,6 +157,48 @@ cpu使用率: (1-(sum by (instance)(increase(windows_cpu_time_total{mode="idle"}
 总线程数：windows_system_threads 
 开机天数（分钟）：(time()-windows_system_system_up_time ) / 60
 ```
+
+
+
+# redis_exporter
+
+## 监控本机redis
+
+直接运行即可，默认端口为9121
+
+```bash
+nohup ./redis_exporter > ./redis_ex.log 2>&1 &
+```
+
+prometheus对应配置
+
+```yaml
+- job_name: redis
+  static_configs:
+  - targets:
+    - x.x.x.x:9121
+```
+
+
+
+## 常用算法
+
+```
+启动时长(分钟)： redis_uptime_in_seconds/ 60 
+已用内存(MB)：redis_memory_used_bytes / (1024*1024)
+10分钟内所有命令执行数(注：会有其他系统命令，如ping)：increase(redis_commands_processed_total[10m])
+10分钟内set命令执行数: increase(redis_commands_total{cmd='set'}[10m])
+10分钟内get命令执行数:  increase(redis_commands_total{cmd='get'}[10m])
+平均输入字节数(byte)：rate(redis_net_input_bytes_total[5m])
+平均输出字节数(byte)(注：由于每次抓取监控信息会调用info命令)：rate(redis_net_output_bytes_total[5m])
+redis实例key的总数：sum by (instance)(redis_db_keys)
+过期key数量：sum by (instance)(redis_expired_keys_total)
+未过期的key数量: sum by (instance)(redis_db_keys) - sum by (instance)(redis_expired_keys_total)
+10分钟内执行最多10个命令：topk(10, increase(redis_commands_total[10m]))
+慢命令:topk(5, redis_commands_duration_seconds_total)
+```
+
+
 
 
 
