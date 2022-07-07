@@ -179,6 +179,10 @@ prometheus对应配置
     - x.x.x.x:9121
 ```
 
+## 监控远程&集群
+
+
+
 
 
 ## 常用算法
@@ -199,6 +203,8 @@ redis实例key的总数：sum by (instance)(redis_db_keys)
 ```
 
 
+
+# JVM
 
 
 
