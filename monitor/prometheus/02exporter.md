@@ -204,7 +204,61 @@ redis实例key的总数：sum by (instance)(redis_db_keys)
 
 
 
-# JVM
+# jvm
+
+使用 jmx-exporter 来监控，使用方式为，启动时通过 javaagent 
 
 
 
+# tomcat
+
+tomcat同样是用 jmx-exporter ，但是需要额外的一些配置
+
+参考 `https://github.com/prometheus/jmx_exporter/blob/master/example_configs/tomcat.yml`
+
+```yaml
+lowercaseOutputLabelNames: true
+lowercaseOutputName: true
+rules:
+- pattern: 'Catalina<type=GlobalRequestProcessor, name=\"(\w+-\w+)-(\d+)\"><>(\w+):'
+  name: tomcat_$3_total
+  labels:
+    port: "$2"
+    protocol: "$1"
+  help: Tomcat global $3
+  type: COUNTER
+- pattern: 'Catalina<j2eeType=Servlet, WebModule=//([-a-zA-Z0-9+&@#/%?=~_|!:.,;]*[-a-zA-Z0-9+&@#/%=~_|]), name=([-a-zA-Z0-9+/$%~_-|!.]*), J2EEApplication=none, J2EEServer=none><>(requestCount|maxTime|processingTime|errorCount):'
+  name: tomcat_servlet_$3_total
+  labels:
+    module: "$1"
+    servlet: "$2"
+  help: Tomcat servlet $3 total
+  type: COUNTER
+- pattern: 'Catalina<type=ThreadPool, name="(\w+-\w+)-(\d+)"><>(currentThreadCount|currentThreadsBusy|keepAliveCount|pollerThreadCount|connectionCount):'
+  name: tomcat_threadpool_$3
+  labels:
+    port: "$2"
+    protocol: "$1"
+  help: Tomcat threadpool $3
+  type: GAUGE
+- pattern: 'Catalina<type=Manager, host=([-a-zA-Z0-9+&@#/%?=~_|!:.,;]*[-a-zA-Z0-9+&@#/%=~_|]), context=([-a-zA-Z0-9+/$%~_-|!.]*)><>(processingTime|sessionCounter|rejectedSessions|expiredSessions):'
+  name: tomcat_session_$3_total
+  labels:
+    context: "$2"
+    host: "$1"
+  help: Tomcat session $3 total
+  type: COUNTER
+- pattern: ".*"  #让所有的jmx metrics全部暴露出来
+```
+
+创建 tomcat-jmx.yml 内容如上
+
+tomat/bin 目录下 ， 编辑文件  `vim setenv.sh`
+
+```sh
+CATALINA_OPTS="-javaagent:./jmx_prometheus_javaagent-0.17.0.jar=9078:./tomcat-jmx.yml"
+```
+
+>  注：网上很多这一步，直接设置的JAVA_OPTS ，虽然也能带上参数，但是执行`shutdown.sh` 也会带上，会导致关进程时候，会再次执行jmx-exporter，然后会报一个端口占用的错误，虽然还是会关掉，但是会导致一些指标异常，如 java_lang_runtime_uptime 启动时间不会刷新。仔细看了 catalina.sh 的文档注释后，官方建议 不要直接修改这个脚本，而是使用 setenv.sh 去添加变量，CATALINA_OPTS 是启动时相关命令参数，而 JAVA_OPTS 无论什么命令都会加。所以我们这里用 CATALINA_OPTS
+
+然后我们把 jmx_prometheus_javaagent-xxx.jar 和 tomcat-jmx.yml 都复制到 tomcat/bin 目录下，启动 ./startup.sh 即可
