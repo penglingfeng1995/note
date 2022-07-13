@@ -262,3 +262,46 @@ CATALINA_OPTS="-javaagent:./jmx_prometheus_javaagent-0.17.0.jar=9078:./tomcat-jm
 >  注：网上很多这一步，直接设置的JAVA_OPTS ，虽然也能带上参数，但是执行`shutdown.sh` 也会带上，会导致关进程时候，会再次执行jmx-exporter，然后会报一个端口占用的错误，虽然还是会关掉，但是会导致一些指标异常，如 java_lang_runtime_uptime 启动时间不会刷新。仔细看了 catalina.sh 的文档注释后，官方建议 不要直接修改这个脚本，而是使用 setenv.sh 去添加变量，CATALINA_OPTS 是启动时相关命令参数，而 JAVA_OPTS 无论什么命令都会加。所以我们这里用 CATALINA_OPTS
 
 然后我们把 jmx_prometheus_javaagent-xxx.jar 和 tomcat-jmx.yml 都复制到 tomcat/bin 目录下，启动 ./startup.sh 即可
+
+# nginx
+
+1，安装 nginx 的 stub_status 模块， 默认是不安装的，进入安装时解压后的nginx 目录
+
+```bash
+./configure --with-http_stub_status_module
+make && make install
+```
+
+然后进入 /usr/local/nginx  ,  先  `./sbin/nginx -s stop` 停掉服务
+
+编辑 conf/nginx.conf ， 在要监控的 server 块下，添加一个 location 配置
+
+```
+        location = /basic_status {
+           stub_status;
+        }
+```
+
+再启动nginx，一定要先停掉，只reload是不生效的，访问 http://localhost/basic_status ，即可看见指标
+
+2, 安装 nginx-prometheus-exporter , 下载后解压，进入目录，直接后台启动，参数指定要抓取的原生指标路径即可
+
+```bash
+nohup ./nginx-prometheus-exporter -nginx.scrape-uri=http://localhost/basic_status >ex.log 2>&1 &
+```
+
+默认暴露端口为 9113 , 访问 ` http://192.168.x.x:9113/metrics` 即可看见 prometheus 格式的指标
+
+3, 配置 promthues 的 任务
+
+```yaml
+- job_name: nginx
+  static_configs:
+  - targets:
+    - 192.168.x.x:9113
+```
+
+4, 如果使用 grafana 的话，可以导入 模板  `https://github.com/nginxinc/nginx-prometheus-exporter/blob/main/grafana/README.md`
+
+
+
