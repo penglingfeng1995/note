@@ -42,7 +42,9 @@ make && make install
 ps -ef |grep nginx
 ```
 
+![](img/n1.jpg)
 
+由于80是默认端口，直接访问 http://localhost 即可，即可看见欢迎页面
 
 # 命令
 
