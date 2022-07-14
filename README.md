@@ -1,28 +1,6 @@
 # note
 自己写些笔记
 
-## github访问慢
-
-1,访问 <http://tool.chinaz.com/dns/>  或 <https://www.ipaddress.com/>  
-
-2，查询 `github.global.ssl.fastly.net` 和 `github.com`的ip地址
-
-3,在host文件中配置
-
-```
-69.63.184.142 github.global.ssl.fastly.net
-13.250.177.223 github.com
-```
-
-4,cmd中运行 `ipconfig /flushdns` ,刷新dns
-
-## linux
-
-```bash
-firewall-cmd --zone=public --add-port=80/tcp --permanent
-firewall-cmd --reload
-```
-
 # markdown 语法
 
 后缀名为md，类似于html，是一种标记语言
@@ -63,11 +41,31 @@ var a = 1;
 
 - item3
 
+有序列表
+
+```markdown
+1. item1
+2. item2
+```
+
+1. item1
+2. item2
+
+## 分割线
+
+```markdown
+---
+```
+
+---
+
 ## 超链接
 
 ```markdown
 [Google](http://www.google.com/)
 ```
+
+[Google](http://www.google.com/)
 
 ## 图片
 
@@ -81,6 +79,10 @@ var a = 1;
 > 引用
 >> 一段提示
 ```
+
+> 引用
+
+> >  一段提示
 
 ## emoji 表情
 
@@ -98,19 +100,37 @@ var a = 1;
 **加粗**
 ```
 
-代码
+代码 （波浪号 ~ 那个键）
 
 ```markdown
 `div`
 ```
 
-删除线
+`div`
+
+删除线 ( 双波浪号 ~~)
 
 ```markdown
 ~~删除线~~
 ```
 
-## 数学公式
+~~删除的内容~~
+
+## TODO 
+
+```markdown
+- [ ] 吃饭
+
+- [x] 睡觉
+```
+
+- [ ] 吃饭
+
+- [x] 睡觉
+
+## 数学公式 
+
+公式和流程图，其他软件或网站不一定支持，写法也复杂，不常用
 
 ```markdown
 $$
@@ -160,15 +180,19 @@ C--> |a=2| E[不够]
 
 
 
-## TODO 
 
-```markdown
-- [ ] 吃饭
 
-- [x] 睡觉
+# github访问慢
+
+1,访问 <http://tool.chinaz.com/dns/>  或 <https://www.ipaddress.com/>  
+
+2，查询 `github.global.ssl.fastly.net` 和 `github.com`的ip地址
+
+3,在host文件中配置
+
+```
+69.63.184.142 github.global.ssl.fastly.net
+13.250.177.223 github.com
 ```
 
-- [ ] 吃饭
-
-- [x] 睡觉
-
+4,cmd中运行 `ipconfig /flushdns` ,刷新dns

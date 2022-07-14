@@ -60,6 +60,10 @@ management:
         include: 'prometheus'
 ```
 
+访问 http://localhost:9099/actuator/prometheus 即可参考系统相关指标
+
+## 自定义指标
+
 配置指标
 
 ```java
@@ -144,11 +148,14 @@ public class HelloController {
 
 ![](img/s1.jpg)
 
+许多监控的指标 如 cpu ，内存等，和 jmx 类似，但是指标名称不同。特有的指标，如logback日志，接口请求数等。
+
 常用指标的promql
 
 ```
 springboot指标
 
+---common
 启动时长(分钟):process_uptime_seconds / 60
 堆内存使用量（MB）：sum by (instance)(jvm_memory_used_bytes{area='heap'}) / (1024*1024)
 非堆内存使用量（MB）：sum by (instance)(jvm_memory_used_bytes{area='nonheap'}) / (1024*1024)
@@ -162,5 +169,11 @@ cpu使用率（%）：process_cpu_usage
 线程数峰值（个）：jvm_threads_peak_threads
 gc总次数（次）：sum by (instance)(jvm_gc_pause_seconds_count)
 gc耗时（豪秒）：sum by (instance)(jvm_gc_pause_seconds_sum) * 1000
+---special
+各接口的请求总数（次）：sum by (instance,uri) (http_server_requests_seconds_count)
+各接口每分钟的请求数（次）：sum by (instance,uri)(increase(http_server_requests_seconds_count[1m]))
+所有接口请求总数（次）：sum by (instance) (http_server_requests_seconds_count)
+每10分钟info日志数(条）：increase(logback_events_total{level='info'}[10m])
+每10分钟error日志总数（条）：increase(logback_events_total{level='error'}[10m])
 ```
 

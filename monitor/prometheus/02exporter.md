@@ -94,15 +94,13 @@ crontab -e
 os_thread_total 330
 ```
 
-
-
 重新启动，指定 `--collector.textfile.directory` 目录，会自动读取该目录下的 .prom 文件
 
 ```bash
 nohup ./node_exporter --collector.textfile.directory=./cus_textfile  > ./node_exporter.log 2>&1 &
 ```
 
-这样就能读取到 自定义的指标 os_thread_total
+这样就能输出 自定义的指标 os_thread_total
 
 ## 常用指标算法
 
@@ -206,7 +204,65 @@ redis实例key的总数：sum by (instance)(redis_db_keys)
 
 # jvm
 
-使用 jmx-exporter 来监控，使用方式为，启动时通过 javaagent 
+使用 jmx-exporter 来监控，使用方式为，启动时通过 javaagent 的形式 
+
+配置 jmx-config.yml ，我们这里配置使用小写风格，prometheus是大小写敏感的，而指标通常都是小写。
+
+```yaml
+lowercaseOutputLabelNames: true
+lowercaseOutputName: true
+rules:
+- pattern: ".*"
+```
+
+把jmx-config.yml 和 jmx_prometheus_javaagent-x.jar 和 程序放在一起， 启动对应的 jar 包程序，参数指定好exporter的端口
+
+```bash
+java -jar -javaagent:./jmx_prometheus_javaagent-0.17.0.jar=9001:jmx-config.yml prom-demo.jar
+```
+
+访问 `http://localhost:9001/metrics` 即可访问指标页面 
+
+## 原理
+
+原理为，通过 javaagent技术， 相当于做了个程序级的代理，通过 java.lang.management 获取对应指标
+
+```java
+import java.lang.management.GarbageCollectorMXBean;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+import java.lang.management.MemoryUsage;
+import java.lang.management.OperatingSystemMXBean;
+import java.lang.management.ThreadMXBean;
+
+// 系统，线程，gc
+OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();
+ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+List<GarbageCollectorMXBean> garbageCollectorMXBeans = ManagementFactory.getGarbageCollectorMXBeans();
+// 内存相关,获取堆内存使用量
+MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
+MemoryUsage heapMemoryUsage = memoryMXBean.getHeapMemoryUsage();
+long heapMemoryUsageUsed = heapMemoryUsage.getUsed();
+```
+
+## 常用指标
+
+```
+jvm指标
+
+应用运行时长(小时): java_lang_runtime_uptime / (1000*60*60)
+上次启动时间（时间戳，）：java_lang_runtime_starttime
+该进程cpu占有率（%）    : avg_over_time(java_lang_operatingsystem_processcpuload[1m]) * 100
+所在系统的cpu占有率（%）：avg_over_time(java_lang_operatingsystem_systemcpuload [1m]) * 100
+可用cpu的核心数（个）：java_lang_operatingsystem_availableprocessors 
+使用内存（MB）：sum by (instance)(java_lang_memorypool_usage_used) / (1024*1024)
+已提交内存（MB）：sum by (instance)(java_lang_memorypool_usage_committed) / (1024*1024)
+每分钟gc次数（次）：sum by (instance)(increase(java_lang_garbagecollector_collectioncount[1m]))
+每分钟gc消耗的时间（毫秒）：sum by (instance) (increase(java_lang_garbagecollector_collectiontime[1m]))
+线程数（个）：java_lang_threading_threadcount 
+守护线程数（个）：java_lang_threading_daemonthreadcount
+类加载数（个）：java_lang_classloading_loadedclasscount 
+```
 
 
 
@@ -253,7 +309,7 @@ rules:
 
 创建 tomcat-jmx.yml 内容如上
 
-tomat/bin 目录下 ， 编辑文件  `vim setenv.sh`
+在 tomat/bin 目录下 ， 编辑文件  `vim setenv.sh`
 
 ```sh
 CATALINA_OPTS="-javaagent:./jmx_prometheus_javaagent-0.17.0.jar=9078:./tomcat-jmx.yml"
@@ -262,6 +318,32 @@ CATALINA_OPTS="-javaagent:./jmx_prometheus_javaagent-0.17.0.jar=9078:./tomcat-jm
 >  注：网上很多这一步，直接设置的JAVA_OPTS ，虽然也能带上参数，但是执行`shutdown.sh` 也会带上，会导致关进程时候，会再次执行jmx-exporter，然后会报一个端口占用的错误，虽然还是会关掉，但是会导致一些指标异常，如 java_lang_runtime_uptime 启动时间不会刷新。仔细看了 catalina.sh 的文档注释后，官方建议 不要直接修改这个脚本，而是使用 setenv.sh 去添加变量，CATALINA_OPTS 是启动时相关命令参数，而 JAVA_OPTS 无论什么命令都会加。所以我们这里用 CATALINA_OPTS
 
 然后我们把 jmx_prometheus_javaagent-xxx.jar 和 tomcat-jmx.yml 都复制到 tomcat/bin 目录下，启动 ./startup.sh 即可
+
+## 常用指标
+
+```
+tomcat指标
+(注:jsp视作一个servlet，模块包含默认docs,example,host-manager等，同时包含了jvm相关指标)
+端口: catalina_connector_port
+初始化加载servlet耗时：sum by (instance)(catalina_servlet_loadtime)
+各模块servlet执行次数（次）：sum by (instance,module)(tomcat_servlet_processingtime_total)
+servlet数量； count by (instance)(catalina_servlet_available)
+输出总字节数（kb）：tomcat_bytessent_total / 1024
+接收总字节数（kb）：tomcat_bytesreceived_total / 1024
+一分钟内输出字节数(kb)：increase(tomcat_bytessent_total[1m]) /1024
+一分钟内接收字节数(kb)：increase(tomcat_bytesreceived_total[1m]) /1024
+请求总数（次）:tomcat_requestcount_total
+错误总数(次):tomcat_errorcount_total
+一分钟内的请求数（次）:increase(tomcat_requestcount_total[1m])
+一分钟内的错误数（次）:increase(tomcat_errorcount_total[1m])
+一小时内每次请求平均处理时长排行(毫秒)：topk(5,increase(tomcat_servlet_processingtime_total[1h])/increase(tomcat_servlet_requestcount_total[1h]))
+一分钟内请求次数最多的servlet排行(次):topk(5,increase(tomcat_servlet_requestcount_total[1m]))
+一分钟内请求次数最多的servlet排行(次):topk(5,increase(tomcat_servlet_errorcount_total[1m]))
+每分钟新增的session数（个）:sum by (instance)(increase(tomcat_session_sessioncounter_total[1m]))
+当前存活sessions数（个）：sum by (instance)(tomcat_session_sessioncounter_total-tomcat_session_expiredsessions_total)
+```
+
+
 
 # nginx
 
@@ -302,6 +384,23 @@ nohup ./nginx-prometheus-exporter -nginx.scrape-uri=http://localhost/basic_statu
 ```
 
 4, 如果使用 grafana 的话，可以导入 模板  `https://github.com/nginxinc/nginx-prometheus-exporter/blob/main/grafana/README.md`
+
+## 常用指标
+
+指标有点少
+
+```
+nginx指标
+是否启动（1启动，0关闭）：nginx_up
+5分钟内新增的接受连接数（个）：increase(nginx_connections_accepted[5m])
+5分钟内新增的处理连接数（个）：increase(nginx_connections_handled[5m])
+当前存活的连接数（个）：nginx_connections_active
+正在读取请求头的连接数（个）：nginx_connections_reading
+正在输出响应的连接数（个）：nginx_connections_writing
+正在等待请求的连接数（个）：nginx_connections_waiting
+请求总数（次）：nginx_http_requests_total
+每分钟请求数（次）：increase(nginx_http_requests_total[1m])
+```
 
 
 
