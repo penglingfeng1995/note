@@ -6,25 +6,37 @@
 
 中间件 
 redis  https://github.com/oliver006/redis_exporter
+
 kafka https://github.com/danielqsj/kafka_exporter
 
 数据库
 mysql https://github.com/prometheus/mysqld_exporter
+
 sqlserver https://github.com/awaragi/prometheus-mssql-exporter 
 (只支持2017,2019[DEP0123] DeprecationWarning: Setting the TLS ServerName to an IP address is not permitted by RFC 6066. This will be ignored in a future version.)
+
 mongodb https://github.com/dcu/mongodb_exporter
+
 elasticsearch https://github.com/prometheus-community/elasticsearch_exporter
+
 influxdb https://github.com/prometheus/influxdb_exporter
+
 通用sql：https://github.com/free/sql_exporter
 
 进程服务
 jvm https://github.com/prometheus/jmx_exporter
+
 springboot
+
 tomcat
+
 nginx https://github.com/nginxinc/nginx-prometheus-exporter
+
+
 
 系统
 linux https://github.com/prometheus/node_exporter
+
 window https://github.com/prometheus-community/windows_exporter
 
 # node_exporter
@@ -177,11 +189,56 @@ prometheus对应配置
     - x.x.x.x:9121
 ```
 
-## 监控远程&集群
+## 多端远程监控
+
+exporter可以独立启动，可以通过 scrape 接口 ，通过 target 参数指定redis的地址
+
+例如 可以 访问 `http://192.169.x.x:9121/scrape?target=192.169.x.x:8116` 就能抓取到指标
+
+9121是exporter的端口地址，target 是 redis 实例的端口地址
+
+我们在 prometheus.yml 中配置，如下即可进行多端抓取
+
+```yaml
+- job_name: redis-exporter-multi
+  static_configs:
+  - targets:
+    - 192.169.x.x:8111
+    - 192.169.x.x:8112
+    - 192.169.x.x:8113
+  metrics_path: /scrape
+  relabel_configs:
+   - source_labels: [__address__]
+     target_label: __param_target
+   - source_labels: [__param_target]
+     target_label: instance
+   - target_label: __address__
+     replacement: 192.169.x.x:9121
+```
+
+> 有关 relabel_configs 的用法，详见 https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config
 
 
 
+## 原理
 
+原理其实是连接上redis，调用 info 命令，查询redis暴露的指标，每项指标内容具体看 `https://redis.io/commands/info/`
+
+```
+> info
+# Server
+redis_version:7.0.2
+redis_git_sha1:00000000
+redis_git_dirty:0
+redis_build_id:cc731c3737d471b4
+redis_mode:standalone
+os:Linux 3.10.0-1160.el7.x86_64 x86_64
+arch_bits:64
+monotonic_clock:POSIX clock_gettime
+multiplexing_api:epoll
+atomicvar_api:atomic-builtin
+...
+```
 
 ## 常用算法
 

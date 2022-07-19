@@ -299,6 +299,15 @@ history :查看执行过的命令
 
 date :查看时间
 
+修改时间
+
+```bash
+## 修改
+date -s "2022-12-12 12:40:50"
+## 保存入bios
+hwclock -w
+```
+
 cal : 查看日历
 
 `cat /proc/version` : 查看内核版本
