@@ -4,13 +4,15 @@
 
 常用exporter
 
-* 中间件 
-  redis  https://github.com/oliver006/redis_exporter
+* 中间件  
+
+redis  https://github.com/oliver006/redis_exporter
 
 kafka https://github.com/danielqsj/kafka_exporter
 
 * 数据库
-  mysql https://github.com/prometheus/mysqld_exporter
+
+mysql https://github.com/prometheus/mysqld_exporter
 
 sqlserver https://github.com/awaragi/prometheus-mssql-exporter 
 (只支持2017,2019)
