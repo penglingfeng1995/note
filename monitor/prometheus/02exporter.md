@@ -465,3 +465,47 @@ nginx指标
 
 
 
+# kafka
+
+解压 tar 包后 ， 直接运行命令，指定好kafka 服务的地址（可以指定多个），及kafka的版本（完整的版本号，注意不是scala版本）即可。
+
+```bash
+./kafka_exporter --kafka.version=0.11.0.0  --kafka.server=192.169.0.238:9092 --kafka.server=192.169.0.238:9093 
+```
+
+默认端口为 9308 ，访问 `http://localhost:9308/metrics`  查看指标即可
+
+官方推荐的 grafana 面板为 https://grafana.com/grafana/dashboards/7589
+
+## 常用指标
+
+
+
+
+
+# mysql
+
+> 支持的mysql版本 >= 5.6 ，小于该版本，某些指标不支持
+
+下载解压 tar 包
+
+进入解压后的新建配置文件 my.cnf
+
+```
+[client]
+host=192.169.x.x
+user=xxxx
+password=xxxx
+```
+
+> 用于监控的账号，需要高等级的权限，能够访问系统表如 information_schema，才能查指标
+
+启动exporter 
+
+```bash
+./mysqld_exporter --config.my-cnf=./my.cnf
+```
+
+默认端口为 9104 ， 访问 http://localhost:9104/metrics 即可查看指标
+
+## 常用指标
