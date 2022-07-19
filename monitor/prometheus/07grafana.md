@@ -12,6 +12,8 @@ nohup ./bin/grafana-server web > ./grafana.log 2>&1 &
 
 访问 `http://localhost:3000` ，默认的账户名密码为 admin/admin，初次会要求修改密码，也可直接跳过
 
+# 配置数据源
+
 然后需要我们创建一个数据来源，这里我们选择 prometheus
 
 ![](img/g1.jpg)
@@ -19,6 +21,8 @@ nohup ./bin/grafana-server web > ./grafana.log 2>&1 &
 配置
 
 ![](img/g2.jpg)
+
+# 导入仪表盘
 
 然后创建仪表盘，可以自己创建也可以导入模板
 
@@ -33,6 +37,8 @@ nohup ./bin/grafana-server web > ./grafana.log 2>&1 &
 然后即可查看我们的数据面板了
 
 ![](img/g5.jpg)
+
+# 自定义仪表盘
 
 我们也可以自己创建自己的视图面板
 
