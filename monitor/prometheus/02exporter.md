@@ -4,16 +4,16 @@
 
 常用exporter
 
-中间件 
-redis  https://github.com/oliver006/redis_exporter
+* 中间件 
+  redis  https://github.com/oliver006/redis_exporter
 
 kafka https://github.com/danielqsj/kafka_exporter
 
-数据库
-mysql https://github.com/prometheus/mysqld_exporter
+* 数据库
+  mysql https://github.com/prometheus/mysqld_exporter
 
 sqlserver https://github.com/awaragi/prometheus-mssql-exporter 
-(只支持2017,2019[DEP0123] DeprecationWarning: Setting the TLS ServerName to an IP address is not permitted by RFC 6066. This will be ignored in a future version.)
+(只支持2017,2019)
 
 mongodb https://github.com/dcu/mongodb_exporter
 
@@ -23,18 +23,20 @@ influxdb https://github.com/prometheus/influxdb_exporter
 
 通用sql：https://github.com/free/sql_exporter
 
-进程服务
+* 进程服务
+
 jvm https://github.com/prometheus/jmx_exporter
 
-springboot
+springboot  
 
-tomcat
+tomcat 同 jmx
 
 nginx https://github.com/nginxinc/nginx-prometheus-exporter
 
 
 
-系统
+* 系统 
+
 linux https://github.com/prometheus/node_exporter
 
 window https://github.com/prometheus-community/windows_exporter
