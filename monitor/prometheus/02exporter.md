@@ -17,7 +17,7 @@ mysql https://github.com/prometheus/mysqld_exporter
 sqlserver https://github.com/awaragi/prometheus-mssql-exporter 
 (只支持2017,2019)
 
-mongodb https://github.com/dcu/mongodb_exporter
+mongodb https://github.com/percona/mongodb_exporter
 
 elasticsearch https://github.com/prometheus-community/elasticsearch_exporter
 
@@ -507,3 +507,16 @@ password=xxxx
 默认端口为 9104 ， 访问 http://localhost:9104/metrics 即可查看指标
 
 ## 常用指标
+
+
+
+# MongoDB
+
+下载解压后，直接指定地址运行，注意mongo账号需要高等级权限
+
+```bash
+./mongodb_exporter --mongodb.uri=mongodb://192.169.x.x:17001 --collect-all
+```
+
+默认端口为 9216 ，访问 http://localhost:9216/metrics 查看指标
+
