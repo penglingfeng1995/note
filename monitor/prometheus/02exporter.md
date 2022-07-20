@@ -23,15 +23,13 @@ elasticsearch https://github.com/prometheus-community/elasticsearch_exporter
 
 influxdb https://github.com/prometheus/influxdb_exporter
 
-通用sql：https://github.com/free/sql_exporter
-
 * 进程服务
 
 jvm https://github.com/prometheus/jmx_exporter
 
-springboot  
+springboot  https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html#actuator.metrics.export.prometheus
 
-tomcat 同 jmx
+tomcat https://github.com/prometheus/jmx_exporter
 
 nginx https://github.com/nginxinc/nginx-prometheus-exporter
 
