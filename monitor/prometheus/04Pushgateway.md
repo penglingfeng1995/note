@@ -69,7 +69,7 @@ pushGateway.pushAdd(CollectorRegistry.defaultRegistry,"test_job");
 </dependency>
 ```
 
-配置 核心 yml ，即可把指标定时推送到pushgateway，默认一分钟，可配置
+配置 `application.yml` ，即可把指标定时推送到pushgateway，默认一分钟，可配置
 
 ```yaml
 management:
