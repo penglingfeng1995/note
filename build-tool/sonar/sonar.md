@@ -39,9 +39,7 @@ firewall-cmd --zone=public --add-port=9000/tcp --permanent
 firewall-cmd --reload
 ```
 
-7,访问目标ip和端口
-
-![](img/s1.png)
+7,访问目标ip和端口 , 默认端口为 9000 ，可以去 `conf/sonar.properties` 中修改 `sonar.web.port` 参数定义端口
 
 # 配合jenkins
 
@@ -139,7 +137,7 @@ idea安装插件 sonarlint ，并配置 qube地址
 
 sonar上新建一个项目，最后会给你一串mvn命令
 
-![](img/s13.png)
+![](img/s13.jpg)
 
 安装maven插件，后执行命令即可
 
@@ -150,5 +148,7 @@ sonar上新建一个项目，最后会给你一串mvn命令
     <version>3.6.0.1398</version>
 </plugin>
 ```
+
+> 命令在windows上执行的时候，注意换行符 \  ，要把它去掉，不然带不上后面的参数
 
 # 配合gitlab
