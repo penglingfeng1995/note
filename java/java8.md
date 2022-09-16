@@ -484,12 +484,47 @@ LocalDateTime lastWeek = now.minusWeeks(1);
 // 比较两个时间的先后
 boolean after = tomorrow.isAfter(lastWeek);
 
-// 格式化
+// 格式化 区别于旧版的 java.text.SimpleDateFormat
 DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 String format = dateTimeFormatter.format(localDateTime);
 ```
 
 # Optional
+
+新推出的容器对象，主要是用来防止空指针异常
+
+创建实例，无法直接使用 new 方法，得用指定的方法
+
+```java
+Student student = new Student(1,"张三",new Date());
+// of方法可传入一个不为null的对象
+Optional<Student> stuOp = Optional.of(student);
+// ofNullable 可以传入一个可以为null的对象
+Optional<Student> stuOp2 = Optional.ofNullable(null);
+// empty 方法直接返回默认空对象
+Optional<Student> stuOp3 = Optional.empty();
+```
+
+可以通过 isPresent 来判断是否有值，通过 get 方法获取值，但是这样用和 if 判断是否为 null 类似。
+
+```java
+if(stuOp.isPresent()){
+    Student student1 = stuOp.get();
+}
+```
+
+如果没有值，直接用get 还是有空指针异常，提供了其他方法来做处理
+
+```java
+// orElse 如果有值则返回，没有则返回传入的默认值
+Student student2 = stuOp.orElse(new Student(0, "默认", new Date()));
+// orElseGet 如果有值则返回，没有则执行传入的表达式并返回表达式的返回值
+Student student3 = stuOp.orElseGet(()->{
+    Date date = new Date();
+    return new Student(3,"李四",date);
+});
+Student student4 = stuOp.orElseThrow(NullPointerException::new);
+```
 
 
 

@@ -55,6 +55,9 @@ window https://github.com/prometheus-community/windows_exporter
 
 # 后台启动
 nohup ./node_exporter > ./node_exporter.log 2>&1 &
+
+# 指定端口，指定采集文件
+nohup ./node_exporter --web.listen-address=":9100"  --collector.textfile.directory=./cus_textfile  > ./node_exporter.log 2>&1 &
 ```
 
 默认端口为 9100 ，访问 `http://192.x.x.x:9100/metrics` 即可查看指标
