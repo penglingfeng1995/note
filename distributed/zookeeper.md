@@ -63,11 +63,13 @@ import org.apache.zookeeper.ZooKeeper;
 void test1() throws Exception {
     // 初始化，集群用逗号隔开
     String connectString = "192.168.147.128:2181";
+    // 超时时间， 设置短了可能连不上
     int sessionTimeout = 15000;
+    // 默认的监听器
     Watcher watcher = event -> System.out.println("触发事件:"+event);
     ZooKeeper zk = new ZooKeeper(connectString,sessionTimeout,watcher);
 
-    // 创建一个持久化的节点
+    // 创建一个持久化的节点 , 第三个参数是权限，设置可见范围，这里是所有人可见。第四个参数是 节点类型，可以设置永久节点，临时节点
     zk.create("/test","数据1".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create("/test/tt1","数据2".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
 
@@ -94,6 +96,25 @@ void test1() throws Exception {
 
 得到连接，创建节点，得到节点内容
 
+开启监听
+
+```java
+// 可以第二个参数设置为true，就是开启监听，默认使用初始化时的watcher
+byte[] data1 = zk.getData("/test", true, null);
+System.out.println("data1:"+new String(data1));
+
+// 也可以自定义一个 watcher 传进去,该watcher将监听这个节点
+// stat参数，是可以new一个该对象，传进去后，会给这个对象赋值，有 mzxid,cversion等信息
+Stat stat = new Stat();
+byte[] data2 = zk.getData("/test/tt1", new Watcher() {
+    @Override
+    public void process(WatchedEvent event) {
+        System.out.println("getData 触发事件" + event);
+    }
+}, stat);
+System.out.println("data2:"+new String(data2) +",stat:"+stat);
+```
+
 
 
 ## 使用 curator 框架
@@ -106,7 +127,7 @@ void test1() throws Exception {
 </dependency>
 ```
 
-curator 是一个 zookeeper 客户端框架
+由于原生的api，用起来不太行，于是有了curator ， 是一个 zookeeper 客户端高级api框架
 
 ```java
 import org.apache.curator.framework.CuratorFramework;
@@ -116,6 +137,7 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 @Test
 void test2() throws Exception {
 
+    // 重试策略，这里是每隔一秒重试一次，最多3次
     RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000,3);
     String connectString = "192.168.147.128:2181";
 
@@ -172,4 +194,12 @@ CuratorCacheListener listener = CuratorCacheListener.builder()
 curatorCache.listenable().addListener(listener);
 curatorCache.start();
 ```
+
+
+
+# 案例：动态上下线
+
+
+
+# 案例：分布式锁
 
