@@ -199,7 +199,67 @@ curatorCache.start();
 
 # 案例：动态上下线
 
+客户端来监听每个服务端的在线状态
+
+客户端代码
+
+开启监听这个节点，有子节点新增，更新，删除，实时更新本地缓存的 set 
+
+```java
+private final Set<String> urlSet = new HashSet<>();
+String rootPath = "/zk_demo_server";
+@Override
+public void afterPropertiesSet() throws Exception {
+    CuratorCache curatorCache = CuratorCache.builder(zkClient, rootPath).build();
+    CuratorCacheListener listener2 = CuratorCacheListener.builder()
+        .forCreatesAndChanges((oldNode, node) -> urlSet.add(new String(node.getData())))
+        .forDeletes(childData -> urlSet.remove(new String(childData.getData())))
+        .build();
+    curatorCache.listenable().addListener(listener2);
+    curatorCache.start();
+}
+```
+
+也可以每次都去查，不过性能肯定不如在内存缓存好的。
+
+```java
+List<String> serverNodes = zkClient.getChildren().forPath(rootPath);
+List<String> urlList = new ArrayList<>();
+for (String serverNode : serverNodes) {
+    byte[] bytes = zkClient.getData().forPath(rootPath+"/"+serverNode);
+    urlList.add(new String(bytes));
+}
+```
+
+
+
+服务端代码
+
+初始化的时候，把自己注册进去，模式选择临时节点，当掉线时，会自动删除节点，zk会通知到客户端
+
+```java
+String url = localhost+":"+serverPort;
+zkClient.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath("/zk_demo_server/server_"+serverPort , url.getBytes());
+```
+
 
 
 # 案例：分布式锁
+
+```java
+import org.apache.curator.framework.recipes.locks.InterProcessMutex;
+
+// 锁是可以重复使用的，要注册成bean
+InterProcessMutex lock = new InterProcessMutex(client, "/m6/lock/saleProduct");
+
+log.info("准备执行锁");
+if (lock.acquire(2, TimeUnit.SECONDS)) {
+    try {
+        log.info("获得锁");
+    } finally {
+        lock.release();
+        log.info("释放锁");
+    }
+}
+```
 
