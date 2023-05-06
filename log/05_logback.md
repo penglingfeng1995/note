@@ -220,7 +220,7 @@ TimeBasedRollingPolicy 会安装配置的文件格式，按照时间滚动触发
 
 `%-40.40c{40}`  第一个`-40`表示最小长度不够使用空格填充，前面带`-`表示左对齐，第二个`.40` 表示最大长度超过会被截断，c 为logger名称，`{40}` 为缩写logger名称使其小于指定长度，但是类名始终都会全显示，包名至少一个字符
 
-# MDC
+## MDC
 
 通常在我们的web系统中，都是多线程的，不同线程的日志会交错打印在一起
 
@@ -263,3 +263,22 @@ public String hello(){
 在查看日志的时候 ，直接 grep 这个 唯一的标识id，就可以知道整个http请求的调用情况。
 
 更优雅的做法是在filter或者 interceptor 实现，还可以打印更多的参数，如userId，url等
+
+## spring
+
+如果是在springboot中使用，则可以按照profile来定制不同环境需要的配置
+
+需要把配置文件的名称改为 logback-spring.xml ， 在配置文件中用 `springProfile` 标签来指定加载到的profile
+
+```xml
+<springProfile name="test">
+    <logger name="com.apache.ibatis" level="DEBUG"/>
+    <root level="INFO">
+        <appender-ref ref="logfile"/>
+        <appender-ref ref="stdout"/>
+    </root>
+</springProfile>
+```
+
+
+
